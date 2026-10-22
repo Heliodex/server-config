@@ -16,3 +16,6 @@ enabled-user.txt
 systemd/system/*.rpmnew
 systemd/system/*.rpmsave
 systemd/system/*.orig
+
+# Installed by bun. Recreate with: bun install
+node_modules/
