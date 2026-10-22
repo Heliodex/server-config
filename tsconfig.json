@@ -18,5 +18,5 @@
 		"types": ["bun"],
 		"verbatimModuleSyntax": true
 	},
-	"include": ["bin/**/*.ts", "libexec/**/*.js"]
+	"include": ["bin/**/*.ts", "libexec/**/*.ts"]
 }
