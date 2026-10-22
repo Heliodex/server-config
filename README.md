@@ -58,6 +58,76 @@ shfmt -w bin/*.sh libexec/*.sh
 `bin/lint-vars.sh` is a different check: it finds variables used but
 never assigned, which under `set -u` are runtime crashes.
 
+### TypeScript equivalents
+
+Every script in `bin/` has a `.ts` beside it, run with Bun instead of
+bash:
+
+```bash
+bun bin/status.ts
+sudo "$(command -v bun)" bin/40-selinux.ts
+```
+
+Bun shell escapes interpolated values, turns a non-zero exit into an
+exception, and gives arrays, objects and `Bun.Glob`. `bin/_lib.ts` holds
+the shared parts: the root check, section headings, aligned output and a
+hidden-input prompt.
+
+They are **not** shorter on the whole. Counting only code, comments
+excluded:
+
+| Script | bash | TS | |
+|---|---|---|---|
+| `reboot-check` | 246 | 213 | **−33** |
+| `10-secrets` | 120 | 97 | **−23** |
+| `30-install` | 148 | 132 | **−16** |
+| `16-radicle-passphrase` | 53 | 40 | **−13** |
+| `14-lnd-creds` | 165 | 163 | −2 |
+| `50-retire` | 61 | 62 | +1 |
+| `60-enable-all` | 74 | 75 | +1 |
+| `22-caddy-webroot` | 108 | 112 | +4 |
+| `12-lnd-wallet` | 30 | 36 | +6 |
+| `status` | 98 | 104 | +6 |
+| `40-selinux` | 115 | 123 | +8 |
+| `20-caddy` | 84 | 95 | +11 |
+| `lint-vars` | 89 | 114 | **+25** |
+| **total** | **1391** | **1366** | **−25** |
+
+Where it wins is loops, tables and error handling: `reboot-check` and
+`status` lose their `printf '%-48s'` alignment and their
+`$(cmd || echo fallback)` dances, and `30-install` loses the dry-run
+`run()` wrapper.
+
+Where it loses is anything that was a shell pipeline. `lint-vars` grew
+the most because a shell script that is *about* shell quoting has to
+reimplement that quoting in TypeScript. `20-caddy` and `40-selinux` grew
+on `grep`/`sed`/`find` reimplemented as regexes and globs.
+
+Two caveats before relying on them:
+
+* the `.sh` versions are the ones that have been run against the server
+  end to end; the `.ts` are equivalents that pass a build check and, for
+  `status`, `lint-vars` and the root guard, have been executed, but the
+  system-changing ones have not.
+* `sudo` resets `PATH`, and Bun usually lives in `~/.bun/bin`. Use
+  `sudo "$(command -v bun)" bin/<name>.ts`, or add Bun to `secure_path`.
+
+Keeping both long term would let them drift. The intent is to pick one
+per script once the TypeScript versions have been exercised.
+
+### Linting
+
+```bash
+bun lint        # oxlint (type-aware) and biome, warnings count as errors
+bun lint:fix    # apply both fixers
+```
+
+`tsconfig.json` is what lets the type-aware pass resolve `bun`; without it
+every `$` template is reported as an error type. `biome.json` also formats
+and sorts. `libexec/` is excluded from oxlint, because the RCON client is
+plain JavaScript that cannot satisfy the unsafe-* rules without types, and
+its fixer rewrites it into worse code than it started as.
+
 ## Applying
 
 Build order matters, because each step needs something the previous one
