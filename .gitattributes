@@ -1,0 +1,21 @@
+# Files here are synced to the server, and the sync does not always
+# preserve modes. The installer sets the right mode on the target
+# anyway, but git should not report spurious mode changes.
+#
+# systemd unit files and config: world readable, never writable
+*.service 644
+*.socket  644
+*.timer   644
+*.slice   644
+*.target  644
+*.path    644
+*.mount   644
+*.d/*.conf 644
+etc/caddy/Caddyfile 644
+
+# Helper scripts: executable
+libexec/*.sh 755
+libexec/*.js 755
+
+# Scripts are executable
+bin/*.sh 755

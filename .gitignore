@@ -1,0 +1,18 @@
+# Script output. Contains secrets: captured unit files include the bitcoind
+# RPC password and the Netlify token, and the Caddyfile includes the token.
+out/
+
+# Never commit plaintext secrets.
+*.env
+!etc/**/*.env.example
+*.plain
+!credentials/*.cred
+
+# Generated at capture time.
+enabled.txt
+enabled-user.txt
+
+# Package-managed unit files are never tracked; use drop-ins instead.
+systemd/system/*.rpmnew
+systemd/system/*.rpmsave
+systemd/system/*.orig

@@ -1,0 +1,24 @@
+# Editor settings, also read by shfmt so the shell scripts format the
+# same way whether they are formatted by hand or by a tool.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.sh]
+indent_style = space
+indent_size = 4
+switch_case_indent = true
+binary_next_line = true
+space_redirects = false
+shell_variant = bash
+
+[*.service]
+indent_style = space
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false
