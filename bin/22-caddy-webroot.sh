@@ -21,8 +21,8 @@
 set -uo pipefail
 
 [ "$(id -u)" -eq 0 ] || {
-    echo "must run as root"
-    exit 1
+	echo "must run as root"
+	exit 1
 }
 
 WEBROOT=/var/www
@@ -30,28 +30,28 @@ mkdir -p "$WEBROOT"
 
 echo "== what is there now =="
 for p in /home/heliodex/Caddyfile \
-    "$WEBROOT/Caddyfile" \
-    /home/heliodex/radicle-explorer/build \
-    /home/mercury/setup \
-    /home/mercury/MercuryCore/Site \
-    /home/heliodex/minecraft \
-    /srv/ssd/_fileserver; do
-    printf '  %-46s ' "$p"
-    if [ -e "$p" ]; then
-        printf 'exists (%s)' "$(du -sh "$p" 2>/dev/null | cut -f1)"
-        if [ -L "$p" ]; then printf ' -> %s' "$(readlink "$p")"; fi
-        echo
-    else
-        echo "absent"
-    fi
+	"$WEBROOT/Caddyfile" \
+	/home/heliodex/radicle-explorer/build \
+	/home/mercury/setup \
+	/home/mercury/MercuryCore/Site \
+	/home/heliodex/minecraft \
+	/srv/ssd/_fileserver; do
+	printf '  %-46s ' "$p"
+	if [ -e "$p" ]; then
+		printf 'exists (%s)' "$(du -sh "$p" 2>/dev/null | cut -f1)"
+		if [ -L "$p" ]; then printf ' -> %s' "$(readlink "$p")"; fi
+		echo
+	else
+		echo "absent"
+	fi
 done
 
 echo
 echo "== the Caddyfile's paths =="
 for f in "$WEBROOT/Caddyfile" /home/heliodex/Caddyfile; do
-    [ -f "$f" ] || continue
-    echo "  $f"
-    grep -nE 'import |root \*' "$f" | sed 's/^/    /'
+	[ -f "$f" ] || continue
+	echo "  $f"
+	grep -nE 'import |root \*' "$f" | sed 's/^/    /'
 done
 
 echo
@@ -59,28 +59,28 @@ echo "== moving =="
 
 # The main Caddyfile. Copied, because the unit refers to it by absolute path and the original is what is being replaced.
 if [ -f /home/heliodex/Caddyfile ] && [ ! -f "$WEBROOT/Caddyfile" ]; then
-    cp -a /home/heliodex/Caddyfile "$WEBROOT/Caddyfile"
-    chmod 0644 "$WEBROOT/Caddyfile"
-    echo "  /home/heliodex/Caddyfile -> $WEBROOT/Caddyfile"
+	cp -a /home/heliodex/Caddyfile "$WEBROOT/Caddyfile"
+	chmod 0644 "$WEBROOT/Caddyfile"
+	echo "  /home/heliodex/Caddyfile -> $WEBROOT/Caddyfile"
 elif [ -f "$WEBROOT/Caddyfile" ]; then
-    echo "  $WEBROOT/Caddyfile already exists, leaving it"
+	echo "  $WEBROOT/Caddyfile already exists, leaving it"
 else
-    echo "  !! no Caddyfile found in either place" >&2
-    exit 1
+	echo "  !! no Caddyfile found in either place" >&2
+	exit 1
 fi
 
 # Static trees. Symlinked, so the files are edited in one place.
 link_tree() {
-    local src="$1" dst="$2"
-    if [ ! -e "$src" ]; then
-        echo "  $src absent, skipping"
-        return
-    fi
-    if [ -e "$dst" ] || [ -L "$dst" ]; then
-        rm -rf "$dst"
-    fi
-    ln -s "$src" "$dst"
-    echo "  $dst -> $src"
+	local src="$1" dst="$2"
+	if [ ! -e "$src" ]; then
+		echo "  $src absent, skipping"
+		return
+	fi
+	if [ -e "$dst" ] || [ -L "$dst" ]; then
+		rm -rf "$dst"
+	fi
+	ln -s "$src" "$dst"
+	echo "  $dst -> $src"
 }
 
 link_tree /home/heliodex/radicle-explorer/build "$WEBROOT/radicle-explorer"
@@ -94,35 +94,35 @@ echo "== rewriting the Caddyfile's paths =="
 # The imports and roots still point at the old locations.
 CADDYFILE=$WEBROOT/Caddyfile
 if [ -f "$CADDYFILE" ]; then
-    sed -i \
-        -e "s#/home/mercury/MercuryCore/Site/Caddyfile#$WEBROOT/mercury-site/Caddyfile#g" \
-        -e "s#/home/heliodex/minecraft/Caddyfile#$WEBROOT/minecraft/Caddyfile#g" \
-        -e "s#/srv/ssd/_fileserver/Caddyfile#$WEBROOT/fileserver/Caddyfile#g" \
-        -e "s#root \* /home/mercury/setup#root * $WEBROOT/mercury-setup#g" \
-        -e "s#root \* /home/heliodex/radicle-explorer/build#root * $WEBROOT/radicle-explorer#g" \
-        "$CADDYFILE"
-    echo "  rewrote the imports and roots"
-    echo
-    echo "--- the paths it now refers to ---"
-    grep -nE 'import |root \*' "$CADDYFILE" | sed 's/^/    /'
+	sed -i \
+		-e "s#/home/mercury/MercuryCore/Site/Caddyfile#$WEBROOT/mercury-site/Caddyfile#g" \
+		-e "s#/home/heliodex/minecraft/Caddyfile#$WEBROOT/minecraft/Caddyfile#g" \
+		-e "s#/srv/ssd/_fileserver/Caddyfile#$WEBROOT/fileserver/Caddyfile#g" \
+		-e "s#root \* /home/mercury/setup#root * $WEBROOT/mercury-setup#g" \
+		-e "s#root \* /home/heliodex/radicle-explorer/build#root * $WEBROOT/radicle-explorer#g" \
+		"$CADDYFILE"
+	echo "  rewrote the imports and roots"
+	echo
+	echo "--- the paths it now refers to ---"
+	grep -nE 'import |root \*' "$CADDYFILE" | sed 's/^/    /'
 fi
 
 echo
 echo "== the token =="
 if grep -q 'nfp_' "$CADDYFILE" 2>/dev/null; then
-    echo "  !! the Caddyfile still has a literal Netlify token."
-    echo "     replace it with a variable and put the value in the env file:"
-    echo "       sed -i 's/dns netlify nfp_[A-Za-z0-9]*/dns netlify {\\\$NETLIFY_API_TOKEN}/' $CADDYFILE"
-    echo "       printf 'NETLIFY_API_TOKEN=%s\\n' TOKEN > /etc/caddy/netlify.env"
-    echo "       chown root:caddy /etc/caddy/netlify.env && chmod 0640 /etc/caddy/netlify.env"
+	echo "  !! the Caddyfile still has a literal Netlify token."
+	echo "     replace it with a variable and put the value in the env file:"
+	echo "       sed -i 's/dns netlify nfp_[A-Za-z0-9]*/dns netlify {\\\$NETLIFY_API_TOKEN}/' $CADDYFILE"
+	echo "       printf 'NETLIFY_API_TOKEN=%s\\n' TOKEN > /etc/caddy/netlify.env"
+	echo "       chown root:caddy /etc/caddy/netlify.env && chmod 0640 /etc/caddy/netlify.env"
 else
-    echo "  the Caddyfile uses {\$NETLIFY_API_TOKEN}, good"
-    if [ -f /etc/caddy/netlify.env ]; then
-        echo "  /etc/caddy/netlify.env exists (root:caddy $(stat -c '%a' /etc/caddy/netlify.env))"
-    else
-        echo "  !! /etc/caddy/netlify.env is missing"
-        echo "     run bin/20-caddy.sh to create it"
-    fi
+	echo "  the Caddyfile uses {\$NETLIFY_API_TOKEN}, good"
+	if [ -f /etc/caddy/netlify.env ]; then
+		echo "  /etc/caddy/netlify.env exists (root:caddy $(stat -c '%a' /etc/caddy/netlify.env))"
+	else
+		echo "  !! /etc/caddy/netlify.env is missing"
+		echo "     run bin/20-caddy.sh to create it"
+	fi
 fi
 
 echo

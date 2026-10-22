@@ -18,19 +18,19 @@ User=heliodex
 Group=heliodex
 WorkingDirectory=/home/heliodex/lightning
 ExecStart=/home/heliodex/lightning/lnd \
-  --lnddir=/home/heliodex/.lnd \
-  --bitcoin.node=bitcoind \
-  --bitcoind.dir=/srv/hdd/.bitcoin \
-  --bitcoind.zmqpubrawblock=localhost:28332 \
-  --bitcoind.zmqpubrawtx=localhost:28333 \
-  --bitcoin.mainnet \
-  --alias=Heliodex \
-  --color=#ff8000 \
-  --rpclisten=127.0.0.1:10009 \
-  --restlisten=127.0.0.1:18080 \
-  --tlscertpath=/home/heliodex/.lnd/tls.cert \
-  --tlskeypath=/home/heliodex/.lnd/tls.key \
-  --wallet-unlock-password-file=/home/heliodex/.lnd/wallet-password
+	--lnddir=/home/heliodex/.lnd \
+	--bitcoin.node=bitcoind \
+	--bitcoind.dir=/srv/hdd/.bitcoin \
+	--bitcoind.zmqpubrawblock=localhost:28332 \
+	--bitcoind.zmqpubrawtx=localhost:28333 \
+	--bitcoin.mainnet \
+	--alias=Heliodex \
+	--color=#ff8000 \
+	--rpclisten=127.0.0.1:10009 \
+	--restlisten=127.0.0.1:18080 \
+	--tlscertpath=/home/heliodex/.lnd/tls.cert \
+	--tlskeypath=/home/heliodex/.lnd/tls.key \
+	--wallet-unlock-password-file=/home/heliodex/.lnd/wallet-password
 
 # lnd reads the bitcoind RPC credentials from lnd.conf, not the command line, so they never appear in the process list.
 #

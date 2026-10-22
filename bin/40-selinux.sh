@@ -27,14 +27,14 @@ set -uo pipefail
 export PATH="/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo "must run as root" >&2
-    exit 1
+	echo "must run as root" >&2
+	exit 1
 fi
 
 if ! command -v semanage >/dev/null 2>&1; then
-    echo "!! semanage is not installed" >&2
-    echo "   sudo zypper install policycoreutils-python-utils" >&2
-    exit 1
+	echo "!! semanage is not installed" >&2
+	echo "   sudo zypper install policycoreutils-python-utils" >&2
+	exit 1
 fi
 
 echo "== SELinux =="
@@ -43,33 +43,33 @@ getenforce 2>&1 | sed 's/^/  /'
 # stat -c %C prints the context directly. Parsing "ls -Z" needs care:
 # its output is "<context> <path>", so field 2 is the path, not the type, and an earlier version of this script silently compared the path to the word "bin_t" and always relabelled.
 type_of() {
-    stat -c '%C' "$1" 2>/dev/null | awk -F: '{print $3}'
+	stat -c '%C' "$1" 2>/dev/null | awk -F: '{print $3}'
 }
 
 # label_file PATH TYPE [FCONTEXT-PATTERN]
 # The pattern is what gets written into the persistent rule; the path is what gets relabelled now. They differ for things like versioned directories, where every version should match.
 label_file() {
-    local path="$1" want="$2" pattern="${3:-$2}"
+	local path="$1" want="$2" pattern="${3:-$2}"
 
-    if [ ! -e "$path" ]; then
-        printf '  %-52s absent\n' "$path"
-        return
-    fi
+	if [ ! -e "$path" ]; then
+		printf '  %-52s absent\n' "$path"
+		return
+	fi
 
-    local now
-    now=$(type_of "$path")
-    if [ "$now" = "$want" ]; then
-        printf '  %-52s already %s\n' "$path" "$want"
-        return
-    fi
+	local now
+	now=$(type_of "$path")
+	if [ "$now" = "$want" ]; then
+		printf '  %-52s already %s\n' "$path" "$want"
+		return
+	fi
 
-    # -a adds; if a rule for that pattern already exists, -m modifies it.
-    semanage fcontext -a -t "$want" "$pattern" 2>/dev/null \
-        || semanage fcontext -m -t "$want" "$pattern" 2>/dev/null \
-        || true
-    restorecon "$path" 2>/dev/null || true
+	# -a adds; if a rule for that pattern already exists, -m modifies it.
+	semanage fcontext -a -t "$want" "$pattern" 2>/dev/null \
+		|| semanage fcontext -m -t "$want" "$pattern" 2>/dev/null \
+		|| true
+	restorecon "$path" 2>/dev/null || true
 
-    printf '  %-52s %s -> %s\n' "$path" "${now:-?}" "$(type_of "$path")"
+	printf '  %-52s %s -> %s\n' "$path" "${now:-?}" "$(type_of "$path")"
 }
 
 echo
@@ -89,19 +89,19 @@ label_file /opt/lnbits/squashfs-root/usr/lnbits/dist/lnbits bin_t
 
 # Radicle installs into $HOME and /usr/bin/radicle-node is a symlink to it, so the target is what needs the label.
 for f in /home/heliodex/.radicle/bin/radicle-node \
-    /home/heliodex/.radicle/bin/rad /home/heliodex/.radicle/bin/git-remote-rad; do
-    label_file "$f" bin_t
+	/home/heliodex/.radicle/bin/rad /home/heliodex/.radicle/bin/git-remote-rad; do
+	label_file "$f" bin_t
 done
 
 # The coputer trio are symlinks from /usr/bin into $HOME.
 for b in gateway litecode wallflower; do
-    real=$(readlink -f "/usr/bin/$b" 2>/dev/null)
-    [ -n "$real" ] && label_file "$real" bin_t
+	real=$(readlink -f "/usr/bin/$b" 2>/dev/null)
+	[ -n "$real" ] && label_file "$real" bin_t
 done
 
 # Mercury's Economy service, which Mercury Core spawns as a subprocess.
 while IFS= read -r f; do
-    label_file "$f" bin_t
+	label_file "$f" bin_t
 done < <(find /home/mercury/MercuryCore/Economy -maxdepth 2 -type f -perm -u+x 2>/dev/null)
 
 echo
@@ -114,36 +114,36 @@ echo "== 3. what httpd_t may do =="
 
 printf '  %-52s ' "httpd_can_network_connect"
 if [ "$(getsebool httpd_can_network_connect 2>/dev/null | awk '{print $3}')" = "on" ]; then
-    echo "already on"
+	echo "already on"
 else
-    setsebool -P httpd_can_network_connect 1 2>&1 | sed 's/^/    /'
-    echo "turned on (persistent)"
+	setsebool -P httpd_can_network_connect 1 2>&1 | sed 's/^/    /'
+	echo "turned on (persistent)"
 fi
 echo "  (without it caddy cannot reach Let's Encrypt, so no certificates)"
 
 # Only the ports caddy BINDS matter: those in a site address, not the reverse_proxy targets and not the numbers inside IP addresses.
 CADDYFILE=/var/www/Caddyfile
 if [ -f "$CADDYFILE" ]; then
-    PORTS=$(grep -E '^[[:space:]]*(https?://)?[^[:space:]]*:[0-9]{2,5}[[:space:]]*\{' "$CADDYFILE" 2>/dev/null \
-        | grep -oE ':[0-9]{2,5}' | tr -d ':' | sort -un)
-    # The named sites bind 443 for TLS and 80 for the redirect whether or not those are written out.
-    PORTS=$(printf '%s\n80\n443\n' "$PORTS" | sort -un | grep -E '^[0-9]+$')
+	PORTS=$(grep -E '^[[:space:]]*(https?://)?[^[:space:]]*:[0-9]{2,5}[[:space:]]*\{' "$CADDYFILE" 2>/dev/null \
+		| grep -oE ':[0-9]{2,5}' | tr -d ':' | sort -un)
+	# The named sites bind 443 for TLS and 80 for the redirect whether or not those are written out.
+	PORTS=$(printf '%s\n80\n443\n' "$PORTS" | sort -un | grep -E '^[0-9]+$')
 
-    echo
-    for p in $PORTS; do
-        printf '  tcp/%-8s ' "$p"
-        if semanage port -l 2>/dev/null | grep -E '^http_port_t' | grep -qw "$p"; then
-            echo "already http_port_t"
-        else
-            semanage port -a -t http_port_t -p tcp "$p" 2>/dev/null \
-                || semanage port -m -t http_port_t -p tcp "$p" 2>/dev/null \
-                || true
-            echo "labelled http_port_t"
-        fi
-    done
+	echo
+	for p in $PORTS; do
+		printf '  tcp/%-8s ' "$p"
+		if semanage port -l 2>/dev/null | grep -E '^http_port_t' | grep -qw "$p"; then
+			echo "already http_port_t"
+		else
+			semanage port -a -t http_port_t -p tcp "$p" 2>/dev/null \
+				|| semanage port -m -t http_port_t -p tcp "$p" 2>/dev/null \
+				|| true
+			echo "labelled http_port_t"
+		fi
+	done
 else
-    echo
-    echo "  $CADDYFILE not found, skipping port labels (bin/20-caddy.sh)"
+	echo
+	echo "  $CADDYFILE not found, skipping port labels (bin/20-caddy.sh)"
 fi
 
 echo
@@ -152,10 +152,10 @@ echo "== 4. the files systemd reads itself: etc_t =="
 # EnvironmentFile= is read by PID 1 as init_t, so a .env under $HOME is unreadable and the service silently starts with no environment. This walks the installed units rather than a hardcoded list, so a unit added later is covered.
 # Every one of them is labelled, including the ones under /etc: a file there is not automatically readable by init_t. /etc/caddy/netlify.env picks up httpd_sys_content_t from the policy for that directory, and that is the label that silently stopped the Netlify token from reaching caddy. etc_t is the type /etc is for, and init_t can read it.
 while IFS= read -r envfile; do
-    envfile="${envfile#-}"
-    label_file "$envfile" etc_t
+	envfile="${envfile#-}"
+	label_file "$envfile" etc_t
 done < <(grep -hoE '^EnvironmentFile=-?.*' /etc/systemd/system/*.service 2>/dev/null \
-    | sed 's/^EnvironmentFile=//' | tr ' ' '\n' | grep -E '^/' | sort -u)
+	| sed 's/^EnvironmentFile=//' | tr ' ' '\n' | grep -E '^/' | sort -u)
 
 echo
 echo "== 5. what caddy serves: httpd_sys_content_t =="
@@ -165,16 +165,16 @@ echo "== 5. what caddy serves: httpd_sys_content_t =="
 label_file /var/www/Caddyfile httpd_sys_content_t
 
 while IFS= read -r link; do
-    target=$(readlink -f "$link" 2>/dev/null)
-    [ -n "$target" ] && [ -d "$target" ] || continue
-    label_file "$target" httpd_sys_content_t "$target(/.*)?"
+	target=$(readlink -f "$link" 2>/dev/null)
+	[ -n "$target" ] && [ -d "$target" ] || continue
+	label_file "$target" httpd_sys_content_t "$target(/.*)?"
 done < <(find /var/www -maxdepth 1 -type l 2>/dev/null)
 
 echo
 echo "== result =="
 for f in "$BITCOIND" /usr/local/bin/caddy /home/heliodex/.bun/bin/bun /home/heliodex/urbit/urbit; do
-    [ -n "${f:-}" ] || continue
-    printf '  %-52s %s\n' "$f" "$(type_of "$f")"
+	[ -n "${f:-}" ] || continue
+	printf '  %-52s %s\n' "$f" "$(type_of "$f")"
 done
 printf '  %-52s %s\n' "httpd_can_network_connect" "$(getsebool httpd_can_network_connect 2>/dev/null | awk '{print $3}')"
 

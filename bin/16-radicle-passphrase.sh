@@ -9,8 +9,8 @@
 set -uo pipefail
 
 [ "$(id -u)" -eq 0 ] || {
-    echo "must run as root"
-    exit 1
+	echo "must run as root"
+	exit 1
 }
 
 ENVFILE=/etc/radicle/radicle.env
@@ -23,31 +23,31 @@ echo "== radicle keystore =="
 ls -la "$KEYDIR" 2>&1
 
 if [ ! -f "$KEYFILE" ]; then
-    echo "!! no keystore at $KEYFILE" >&2
-    exit 1
+	echo "!! no keystore at $KEYFILE" >&2
+	exit 1
 fi
 
 # The keystore is an OpenSSH-format key. Encrypted ones carry a "bcrypt" KDF marker in the base64 body.
 if grep -q 'ENCRYPTED\|bcrypt' "$KEYFILE" 2>/dev/null; then
-    echo "  keystore is encrypted, a passphrase is required"
+	echo "  keystore is encrypted, a passphrase is required"
 else
-    echo "  keystore does not look encrypted, but RAD_PASSPHRASE is harmless"
-    echo "  (it will simply be ignored)"
+	echo "  keystore does not look encrypted, but RAD_PASSPHRASE is harmless"
+	echo "  (it will simply be ignored)"
 fi
 
 echo
 echo "== enter the passphrase you chose during 'rad auth' =="
 if [ -t 0 ]; then
-    read -r -s -p "passphrase: " PASS
-    echo
+	read -r -s -p "passphrase: " PASS
+	echo
 else
-    echo "(no tty, reading from stdin)" >&2
-    read -r PASS
+	echo "(no tty, reading from stdin)" >&2
+	read -r PASS
 fi
 
 if [ -z "${PASS:-}" ]; then
-    echo "!! no passphrase given" >&2
-    exit 1
+	echo "!! no passphrase given" >&2
+	exit 1
 fi
 
 umask 077
@@ -62,8 +62,8 @@ echo
 echo "== verifying that the passphrase actually works =="
 # Run the node with the passphrase and see whether it gets past the keystore. It listens on 8776, so use a different port to avoid clashing with a running node.
 if RAD_HOME=/home/heliodex/.radicle RAD_PASSPHRASE="$PASS" \
-    timeout 12 /usr/bin/radicle-node --listen '[::]:18776' --force 2>&1 | head -12; then
-    :
+	timeout 12 /usr/bin/radicle-node --listen '[::]:18776' --force 2>&1 | head -12; then
+	:
 fi
 
 echo

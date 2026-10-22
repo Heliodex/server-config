@@ -47,9 +47,9 @@ machine should change nothing.
 ### Formatting
 
 Shell scripts are formatted with [`shfmt`](https://github.com/mvdan/sh).
-The settings live in `.editorconfig` — four-space indent, indented
-`case` bodies, operators at the start of a continuation line — so no
-flags are needed:
+The settings live in `.editorconfig` — tab indent, indented `case`
+bodies, operators at the start of a continuation line — so no flags are
+needed:
 
 ```bash
 shfmt -w bin/*.sh libexec/*.sh

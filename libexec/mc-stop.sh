@@ -11,22 +11,22 @@ RCON_PORT="${MC_RCON_PORT:-25575}"
 
 PASS_FILE="${CREDENTIALS_DIRECTORY:-}/rcon-password"
 if [ ! -r "$PASS_FILE" ]; then
-    PASS_FILE="${MC_RCON_PASSWORD_FILE:-/etc/credstore/rcon-password}"
+	PASS_FILE="${MC_RCON_PASSWORD_FILE:-/etc/credstore/rcon-password}"
 fi
 if [ ! -r "$PASS_FILE" ]; then
-    echo "mc-stop: no rcon password available" >&2
-    exit 0
+	echo "mc-stop: no rcon password available" >&2
+	exit 0
 fi
 
 BUN=/home/heliodex/.bun/bin/bun
 if [ ! -x "$BUN" ]; then
-    echo "mc-stop: bun not found at $BUN" >&2
-    exit 0
+	echo "mc-stop: bun not found at $BUN" >&2
+	exit 0
 fi
 
 if "$BUN" /usr/local/libexec/mc-rcon.js "$RCON_HOST" "$RCON_PORT" "$PASS_FILE" stop; then
-    echo "mc-stop: stop command sent"
+	echo "mc-stop: stop command sent"
 else
-    echo "mc-stop: RCON stop failed; systemd will kill the server" >&2
+	echo "mc-stop: RCON stop failed; systemd will kill the server" >&2
 fi
 exit 0

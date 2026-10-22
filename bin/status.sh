@@ -15,21 +15,21 @@ OUT="$REPO_DIR/out/status.txt"
 exec >"$OUT" 2>&1
 
 UNITS=(
-    radicle-node.service
-    bitcoind.service
-    lnd.service
-    lnbits.service
-    albyhub.service
-    radicle-httpd.service
-    peaks.service
-    mercury-core.service
-    defector.service
-    coputer-gateway@coputer.heliodex.cf.service
-    coputer-wallflower@coputer.heliodex.cf.service
-    coputer-litecode.service
-    paper@LHCRJpaper.service
-    urbit.service
-    caddy.service
+	radicle-node.service
+	bitcoind.service
+	lnd.service
+	lnbits.service
+	albyhub.service
+	radicle-httpd.service
+	peaks.service
+	mercury-core.service
+	defector.service
+	coputer-gateway@coputer.heliodex.cf.service
+	coputer-wallflower@coputer.heliodex.cf.service
+	coputer-litecode.service
+	paper@LHCRJpaper.service
+	urbit.service
+	caddy.service
 )
 
 echo "# server status at $(date -Is)"
@@ -37,30 +37,30 @@ echo
 echo "==================== SUMMARY ===================="
 printf '%-48s %-10s %-12s %s\n' "UNIT" "ACTIVE" "ENABLED" "RESTARTS"
 for u in "${UNITS[@]}"; do
-    # is-active and is-enabled exit non-zero for anything that is not
-    # active or not enabled, while still printing the answer to stdout.
-    # Appending a fallback with || produces two lines and shifts the
-    # whole table, so take the output and the exit code separately.
-    a=$(systemctl is-active "$u" 2>/dev/null | head -1)
-    e=$(systemctl is-enabled "$u" 2>/dev/null | head -1)
-    [ -n "$a" ] || a="n/a"
-    [ -n "$e" ] || e="n/a"
-    n=$(systemctl show "$u" -p NRestarts --value 2>/dev/null || echo "?")
-    printf '%-48s %-10s %-12s %s\n' "$u" "$a" "$e" "$n"
+	# is-active and is-enabled exit non-zero for anything that is not
+	# active or not enabled, while still printing the answer to stdout.
+	# Appending a fallback with || produces two lines and shifts the
+	# whole table, so take the output and the exit code separately.
+	a=$(systemctl is-active "$u" 2>/dev/null | head -1)
+	e=$(systemctl is-enabled "$u" 2>/dev/null | head -1)
+	[ -n "$a" ] || a="n/a"
+	[ -n "$e" ] || e="n/a"
+	n=$(systemctl show "$u" -p NRestarts --value 2>/dev/null || echo "?")
+	printf '%-48s %-10s %-12s %s\n' "$u" "$a" "$e" "$n"
 done
 
 echo
 echo "==================== FAILED UNITS ===================="
 systemctl --failed --no-pager --no-legend 2>&1 | head -20
 if ! systemctl --failed --no-legend --no-pager 2>/dev/null | grep -q .; then
-    echo "(none)"
+	echo "(none)"
 fi
 
 echo
 echo "==================== ENABLED AT BOOT ===================="
 systemctl list-unit-files --state=enabled --no-legend --no-pager 2>&1 \
-    | grep -E 'radicle|bitcoin|lnd|lnbits|albyhub|peaks|mercury|defector|coputer|paper|urbit|caddy|surreal' \
-    || echo "(none of our units are enabled)"
+	| grep -E 'radicle|bitcoin|lnd|lnbits|albyhub|peaks|mercury|defector|coputer|paper|urbit|caddy|surreal' \
+	|| echo "(none of our units are enabled)"
 echo
 echo "--- and the multi-user.target wants directory ---"
 ls -la /etc/systemd/system/multi-user.target.wants/ 2>&1 | grep -E 'radicle|bitcoin|lnd|lnbits|albyhub|peaks|mercury|defector|coputer|paper|urbit|caddy' || echo "(none)"
@@ -68,15 +68,15 @@ ls -la /etc/systemd/system/multi-user.target.wants/ 2>&1 | grep -E 'radicle|bitc
 echo
 echo "==================== PER-UNIT DETAIL ===================="
 for u in "${UNITS[@]}"; do
-    echo
-    echo "########## $u ##########"
-    systemctl show "$u" \
-        -p LoadState -p ActiveState -p SubState -p UnitFileState \
-        -p NRestarts -p Result -p ExecMainStatus -p ExecMainCode \
-        -p User -p FragmentPath -p ConditionResult \
-        --no-pager 2>&1 | sed 's/^/  /'
-    echo "  --- last 8 log lines ---"
-    journalctl -u "$u" -b --no-pager -n 8 2>&1 | sed 's/^/  /' | tail -10
+	echo
+	echo "########## $u ##########"
+	systemctl show "$u" \
+		-p LoadState -p ActiveState -p SubState -p UnitFileState \
+		-p NRestarts -p Result -p ExecMainStatus -p ExecMainCode \
+		-p User -p FragmentPath -p ConditionResult \
+		--no-pager 2>&1 | sed 's/^/  /'
+	echo "  --- last 8 log lines ---"
+	journalctl -u "$u" -b --no-pager -n 8 2>&1 | sed 's/^/  /' | tail -10
 done
 
 echo
@@ -89,9 +89,9 @@ journalctl -b -p err --no-pager 2>&1 | grep -E 'Failed|failed|error' | tail -20 
 echo
 echo "==================== SELINUX DENIALS ===================="
 if command -v ausearch >/dev/null 2>&1; then
-    ausearch -m avc -ts boot 2>&1 | grep -E 'denied' | tail -15 || echo "(none)"
+	ausearch -m avc -ts boot 2>&1 | grep -E 'denied' | tail -15 || echo "(none)"
 else
-    echo "(ausearch not installed)"
+	echo "(ausearch not installed)"
 fi
 
 echo

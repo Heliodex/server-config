@@ -12,13 +12,13 @@ cd "$DIR" || exit 1
 # Newest paper-*.jar wins.
 JAR=$(ls -1t "$DIR"/paper-*.jar 2>/dev/null | head -1)
 if [ -z "$JAR" ]; then
-    echo "paper-start: no paper-*.jar in $DIR" >&2
-    exit 1
+	echo "paper-start: no paper-*.jar in $DIR" >&2
+	exit 1
 fi
 
 exec /usr/bin/java \
-    -Xms2G -Xmx3G \
-    -XX:+UseG1GC \
-    -XX:+AlwaysPreTouch \
-    -jar "$JAR" \
-    --nogui
+	-Xms2G -Xmx3G \
+	-XX:+UseG1GC \
+	-XX:+AlwaysPreTouch \
+	-jar "$JAR" \
+	--nogui

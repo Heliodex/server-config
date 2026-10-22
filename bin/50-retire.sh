@@ -14,41 +14,41 @@
 set -uo pipefail
 
 [ "$(id -u)" -eq 0 ] || {
-    echo "must run as root"
-    exit 1
+	echo "must run as root"
+	exit 1
 }
 
 echo "== disabling and removing old system units"
 for u in startup gateway litecode wallflower; do
-    if systemctl list-unit-files "$u.service" --no-legend 2>/dev/null | grep -q .; then
-        echo "  $u.service"
-        systemctl disable --now "$u.service" 2>&1 | sed 's/^/    /'
-        rm -f "/etc/systemd/system/$u.service"
-    else
-        echo "  $u.service: not present"
-    fi
+	if systemctl list-unit-files "$u.service" --no-legend 2>/dev/null | grep -q .; then
+		echo "  $u.service"
+		systemctl disable --now "$u.service" 2>&1 | sed 's/^/    /'
+		rm -f "/etc/systemd/system/$u.service"
+	else
+		echo "  $u.service: not present"
+	fi
 done
 
 echo
 echo "== disabling and removing t3code (user unit)"
 if systemctl --user list-unit-files t3code.service --no-legend 2>/dev/null | grep -q . \
-    || [ -f /home/heliodex/.config/systemd/user/t3code.service ]; then
-    systemctl --user disable --now t3code.service 2>&1 | sed 's/^/    /' || true
-    rm -f /home/heliodex/.config/systemd/user/t3code.service
-    rm -f /home/heliodex/.config/systemd/user/default.target.wants/t3code.service
-    echo "  removed"
+	|| [ -f /home/heliodex/.config/systemd/user/t3code.service ]; then
+	systemctl --user disable --now t3code.service 2>&1 | sed 's/^/    /' || true
+	rm -f /home/heliodex/.config/systemd/user/t3code.service
+	rm -f /home/heliodex/.config/systemd/user/default.target.wants/t3code.service
+	echo "  removed"
 else
-    echo "  not present"
+	echo "  not present"
 fi
 
 echo
 echo "== permanent firewall rules"
 for p in 80 443; do
-    if firewall-cmd --permanent --query-port="$p/tcp" 2>/dev/null | grep -q yes; then
-        echo "  $p/tcp already permanent"
-    else
-        firewall-cmd --permanent --add-port="$p/tcp" 2>&1 | sed 's/^/    /'
-    fi
+	if firewall-cmd --permanent --query-port="$p/tcp" 2>/dev/null | grep -q yes; then
+		echo "  $p/tcp already permanent"
+	else
+		firewall-cmd --permanent --add-port="$p/tcp" 2>&1 | sed 's/^/    /'
+	fi
 done
 
 # The old STARTUP.sh also opened these two, at runtime only:

@@ -32,8 +32,8 @@
 set -uo pipefail
 
 [ "$(id -u)" -eq 0 ] || {
-    echo "must run as root"
-    exit 1
+	echo "must run as root"
+	exit 1
 }
 
 CREDSTORE=/etc/credstore.encrypted
@@ -41,67 +41,67 @@ install -d -m 0700 "$CREDSTORE"
 
 echo "== TPM2 present?"
 if systemd-creds --tpm2-device=list 2>/dev/null | grep -q /dev/tpm; then
-    KEY=tpm2
-    echo "  -> credentials will be TPM2-bound (decryptable only on this machine)"
+	KEY=tpm2
+	echo "  -> credentials will be TPM2-bound (decryptable only on this machine)"
 else
-    KEY=host
-    echo "  -> no TPM2; credentials bound to /var/lib/systemd/credential.secret"
-    echo "     BACK THAT FILE UP or the credentials become unreadable:"
-    echo "     sudo cp -a /var/lib/systemd/credential.secret ~/credential.secret.bak"
+	KEY=host
+	echo "  -> no TPM2; credentials bound to /var/lib/systemd/credential.secret"
+	echo "     BACK THAT FILE UP or the credentials become unreadable:"
+	echo "     sudo cp -a /var/lib/systemd/credential.secret ~/credential.secret.bak"
 fi
 
 # Migrate a credential created by an older version of this script:
 #   /etc/credstore/<name>.cred  (embedded name "<name>", wrong dir, has ext)
 #     -> /etc/credstore.encrypted/<name>  (embedded name "<name>")
 migrate() {
-    local name="$1"
-    local old_cred="/etc/credstore/$name.cred"
-    local old_plain="/etc/credstore/$name"
-    local new="$CREDSTORE/$name"
-    local src=""
+	local name="$1"
+	local old_cred="/etc/credstore/$name.cred"
+	local old_plain="/etc/credstore/$name"
+	local new="$CREDSTORE/$name"
+	local src=""
 
-    [ -f "$old_cred" ] && src="$old_cred"
-    [ -f "$old_plain" ] && src="$old_plain"
-    [ -n "$src" ] || return 1
+	[ -f "$old_cred" ] && src="$old_cred"
+	[ -f "$old_plain" ] && src="$old_plain"
+	[ -n "$src" ] || return 1
 
-    echo "  $name: migrating $src"
-    local tmp
-    tmp=$(mktemp)
-    if systemd-creds decrypt --name="$name" "$src" >"$tmp" 2>/dev/null; then
-        if systemd-creds encrypt --name="$name" --with-key="$KEY" "$tmp" "$new" 2>/dev/null; then
-            chmod 0600 "$new"
-            rm -f "$src" "$src.cred"
-            echo "  $name: migrated to $new"
-            rm -f "$tmp"
-            return 0
-        fi
-    fi
-    rm -f "$tmp"
-    echo "  $name: could not migrate $src, re-asking" >&2
-    return 1
+	echo "  $name: migrating $src"
+	local tmp
+	tmp=$(mktemp)
+	if systemd-creds decrypt --name="$name" "$src" >"$tmp" 2>/dev/null; then
+		if systemd-creds encrypt --name="$name" --with-key="$KEY" "$tmp" "$new" 2>/dev/null; then
+			chmod 0600 "$new"
+			rm -f "$src" "$src.cred"
+			echo "  $name: migrated to $new"
+			rm -f "$tmp"
+			return 0
+		fi
+	fi
+	rm -f "$tmp"
+	echo "  $name: could not migrate $src, re-asking" >&2
+	return 1
 }
 
 create_cred() {
-    local name="$1" prompt="$2"
-    local file="$CREDSTORE/$name"
+	local name="$1" prompt="$2"
+	local file="$CREDSTORE/$name"
 
-    if [ -f "$file" ]; then
-        echo "  $name: already exists, leaving alone"
-        return 0
-    fi
+	if [ -f "$file" ]; then
+		echo "  $name: already exists, leaving alone"
+		return 0
+	fi
 
-    if migrate "$name"; then
-        return 0
-    fi
+	if migrate "$name"; then
+		return 0
+	fi
 
-    echo "  $name: $prompt"
-    if ! systemd-ask-password "$prompt" \
-        | systemd-creds encrypt --name="$name" --with-key="$KEY" - "$file"; then
-        echo "  $name: FAILED" >&2
-        return 1
-    fi
-    chmod 0600 "$file"
-    echo "  $name: written to $file"
+	echo "  $name: $prompt"
+	if ! systemd-ask-password "$prompt" \
+		| systemd-creds encrypt --name="$name" --with-key="$KEY" - "$file"; then
+		echo "  $name: FAILED" >&2
+		return 1
+	fi
+	chmod 0600 "$file"
+	echo "  $name: written to $file"
 }
 
 echo
@@ -114,13 +114,13 @@ create_cred rcon-password "PaperMC RCON password (set enable-rcon=true in server
 echo
 echo "== verifying each credential round-trips"
 for f in "$CREDSTORE"/*; do
-    [ -f "$f" ] || continue
-    base=$(basename "$f")
-    if systemd-creds decrypt "$f" >/dev/null 2>&1; then
-        printf '  %-28s ok\n' "$base"
-    else
-        printf '  %-28s FAILED (name mismatch or bad key)\n' "$base"
-    fi
+	[ -f "$f" ] || continue
+	base=$(basename "$f")
+	if systemd-creds decrypt "$f" >/dev/null 2>&1; then
+		printf '  %-28s ok\n' "$base"
+	else
+		printf '  %-28s FAILED (name mismatch or bad key)\n' "$base"
+	fi
 done
 
 # systemd mounts a tmpfs for the credentials directory, and that needs a recent kernel. If that mount is unavailable, every unit using LoadCredential= fails with 243/CREDENTIALS.
@@ -129,16 +129,16 @@ done
 echo
 echo "== writing the plain-text fallback for the RCON password"
 if [ -f "$CREDSTORE/rcon-password" ]; then
-    tmp=$(mktemp)
-    if systemd-creds decrypt "$CREDSTORE/rcon-password" >"$tmp" 2>/dev/null; then
-        install -o heliodex -g heliodex -m 0400 "$tmp" /etc/credstore/rcon-password
-        echo "  wrote /etc/credstore/rcon-password (heliodex:heliodex 0400)"
-    else
-        echo "  could not decrypt rcon-password, skipping" >&2
-    fi
-    rm -f "$tmp"
+	tmp=$(mktemp)
+	if systemd-creds decrypt "$CREDSTORE/rcon-password" >"$tmp" 2>/dev/null; then
+		install -o heliodex -g heliodex -m 0400 "$tmp" /etc/credstore/rcon-password
+		echo "  wrote /etc/credstore/rcon-password (heliodex:heliodex 0400)"
+	else
+		echo "  could not decrypt rcon-password, skipping" >&2
+	fi
+	rm -f "$tmp"
 else
-    echo "  no rcon-password credential, skipping"
+	echo "  no rcon-password credential, skipping"
 fi
 
 # The Netlify token is NOT a systemd credential. Caddy reads the Caddyfile as the caddy user, and 'dns netlify <token>' needs a literal in the config, so the token lives in a root:caddy 0640 file that the unit passes in via EnvironmentFile. See bin/20-caddy.sh.

@@ -9,7 +9,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.sh]
-indent_style = space
+indent_style = tab
 indent_size = 4
 switch_case_indent = true
 binary_next_line = true
@@ -17,7 +17,11 @@ space_redirects = false
 shell_variant = bash
 
 [*.service]
-indent_style = space
+indent_style = tab
+indent_size = 4
+
+[*.slice]
+indent_style = tab
 indent_size = 4
 
 [*.md]

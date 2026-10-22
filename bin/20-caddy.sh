@@ -9,8 +9,8 @@
 set -uo pipefail
 
 [ "$(id -u)" -eq 0 ] || {
-    echo "must run as root"
-    exit 1
+	echo "must run as root"
+	exit 1
 }
 
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -29,25 +29,25 @@ echo "== installed $WEBROOT/Caddyfile"
 DEST=/usr/local/bin/caddy
 SRC=""
 for cand in /home/heliodex/caddy/xcb/caddy /home/heliodex/caddy/caddy /bin/caddy /usr/bin/caddy; do
-    [ "$cand" = "$DEST" ] && continue
-    if [ -x "$cand" ] && [ ! -L "$cand" ]; then
-        if "$cand" version 2>/dev/null | grep -q .; then
-            SRC="$cand"
-            break
-        fi
-    fi
+	[ "$cand" = "$DEST" ] && continue
+	if [ -x "$cand" ] && [ ! -L "$cand" ]; then
+		if "$cand" version 2>/dev/null | grep -q .; then
+			SRC="$cand"
+			break
+		fi
+	fi
 done
 
 if [ -z "$SRC" ] && [ -x "$DEST" ] && [ ! -L "$DEST" ] && "$DEST" version 2>/dev/null | grep -q .; then
-    echo "== $DEST is already a caddy binary, using it in place"
-    SRC=""
+	echo "== $DEST is already a caddy binary, using it in place"
+	SRC=""
 elif [ -z "$SRC" ]; then
-    echo "!! no caddy binary found to install" >&2
-    echo "   looked in ~/caddy/xcb/caddy, ~/caddy/caddy, /bin/caddy, /usr/bin/caddy" >&2
-    exit 1
+	echo "!! no caddy binary found to install" >&2
+	echo "   looked in ~/caddy/xcb/caddy, ~/caddy/caddy, /bin/caddy, /usr/bin/caddy" >&2
+	exit 1
 else
-    echo "== installing $SRC to $DEST"
-    install -m 0755 "$SRC" "$DEST"
+	echo "== installing $SRC to $DEST"
+	install -m 0755 "$SRC" "$DEST"
 fi
 
 /usr/local/bin/caddy version 2>&1 | head -1
@@ -58,15 +58,15 @@ echo "== label check"
 LABEL=$(ls -Z /usr/local/bin/caddy 2>/dev/null | awk '{print $2}')
 echo "  $DEST is $LABEL"
 if [ "$LABEL" != "httpd_exec_t" ]; then
-    echo "  labelling it httpd_exec_t, which gives the init_t -> httpd_t transition"
-    if command -v semanage >/dev/null 2>&1; then
-        semanage fcontext -a -t httpd_exec_t "$DEST" 2>&1 | sed 's/^/    /' || true
-        restorecon -v "$DEST" 2>&1 | sed 's/^/    /' || true
-    else
-        echo "    (semanage not installed; falling back to chcon)"
-        chcon -t httpd_exec_t "$DEST" 2>&1 | sed 's/^/    /' || true
-    fi
-    echo "  now: $(ls -Z /usr/local/bin/caddy 2>/dev/null | awk '{print $2}')"
+	echo "  labelling it httpd_exec_t, which gives the init_t -> httpd_t transition"
+	if command -v semanage >/dev/null 2>&1; then
+		semanage fcontext -a -t httpd_exec_t "$DEST" 2>&1 | sed 's/^/    /' || true
+		restorecon -v "$DEST" 2>&1 | sed 's/^/    /' || true
+	else
+		echo "    (semanage not installed; falling back to chcon)"
+		chcon -t httpd_exec_t "$DEST" 2>&1 | sed 's/^/    /' || true
+	fi
+	echo "  now: $(ls -Z /usr/local/bin/caddy 2>/dev/null | awk '{print $2}')"
 fi
 
 # The token. If the old Caddyfile still has one, lift it out of there.
@@ -76,14 +76,14 @@ ENV_FILE=/etc/caddy/netlify.env
 install -d -m 0755 /etc/caddy
 
 if [ ! -f "$TOKEN_FILE" ]; then
-    old=$(grep -hoE 'nfp_[A-Za-z0-9]+' "$WEBROOT/Caddyfile" /home/heliodex/Caddyfile 2>/dev/null | head -1)
-    if [ -n "$old" ]; then
-        echo "== lifting the token out of the Caddyfile"
-        printf '%s' "$old" >"$TOKEN_FILE"
-    else
-        echo "== no token found; create $TOKEN_FILE manually"
-        : >"$TOKEN_FILE"
-    fi
+	old=$(grep -hoE 'nfp_[A-Za-z0-9]+' "$WEBROOT/Caddyfile" /home/heliodex/Caddyfile 2>/dev/null | head -1)
+	if [ -n "$old" ]; then
+		echo "== lifting the token out of the Caddyfile"
+		printf '%s' "$old" >"$TOKEN_FILE"
+	else
+		echo "== no token found; create $TOKEN_FILE manually"
+		: >"$TOKEN_FILE"
+	fi
 fi
 
 chown root:caddy "$TOKEN_FILE"
@@ -97,10 +97,10 @@ echo "== wrote $TOKEN_FILE and $ENV_FILE (root:caddy 0640)"
 
 # The old file may still contain the token in plaintext.
 if grep -q 'nfp_' /home/heliodex/Caddyfile 2>/dev/null; then
-    echo
-    echo "!! /home/heliodex/Caddyfile still contains a plaintext token."
-    echo "   Redact it once the new config is verified:"
-    echo "     sed -i 's/nfp_[A-Za-z0-9]*/REDACTED/' /home/heliodex/Caddyfile"
+	echo
+	echo "!! /home/heliodex/Caddyfile still contains a plaintext token."
+	echo "   Redact it once the new config is verified:"
+	echo "     sed -i 's/nfp_[A-Za-z0-9]*/REDACTED/' /home/heliodex/Caddyfile"
 fi
 
 cat <<'EOF'
