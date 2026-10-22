@@ -132,8 +132,11 @@ console.log("\n== 4. the files systemd reads itself: etc_t ==")
 const envFiles = new Set<string>()
 for await (const unit of new Bun.Glob("*.service").scan({ cwd: "/etc/systemd/system" })) {
 	const text = await Bun.file(`/etc/systemd/system/${unit}`).text()
-	for (const m of text.matchAll(/^EnvironmentFile=-?(.*)$/gm))
-		for (const p of m[1].trim().split(/\s+/)) if (p.startsWith("/")) envFiles.add(p)
+	for (const m of text.matchAll(/^EnvironmentFile=-?(.*)$/gm)) {
+		const value = m[1]
+		if (!value) continue
+		for (const p of value.trim().split(/\s+/)) if (p.startsWith("/")) envFiles.add(p)
+	}
 }
 for (const p of [...envFiles].toSorted()) await labelFile(p, "etc_t")
 

@@ -177,10 +177,11 @@ for (const f of [BITCOINCONF, "/usr/sbin/lnd.sh"]) {
 	const has = (await Bun.file(f).text()).includes(RPCPASS)
 	console.log(`  ${label(f, 46)} ${has ? "STILL CONTAINS IT" : "clean"}`)
 }
-for (const [f, note] of [
+const secretFiles: [string, string][] = [
 	[RPCCONF, "contains it, mode 0640 root:heliodex"],
 	[LNDCONF, "contains it, mode 0600 heliodex"],
-]) {
+]
+for (const [f, note] of secretFiles) {
 	const has = (await Bun.file(f).text()).includes(RPCPASS)
 	console.log(`  ${label(f, 46)} ${has ? note : "clean"}`)
 }

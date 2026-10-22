@@ -118,9 +118,16 @@ per script once the TypeScript versions have been exercised.
 ### Linting
 
 ```bash
+bun check       # Bun's built-in type checker
 bun lint        # oxlint (type-aware) and biome, warnings count as errors
 bun lint:fix    # apply both fixers
 ```
+
+The three are not redundant. `bun check` type-checks against `tsconfig.json`
+and catches what the linters let through — with `noUncheckedIndexedAccess`
+on, a regex capture group is `string | undefined`, which oxlint accepts and
+the type checker does not. `oxlint` catches style and safety rules; `biome`
+formats.
 
 `tsconfig.json` is what lets the type-aware pass resolve `bun`; without it
 every `$` template is reported as an error type. `biome.json` also formats

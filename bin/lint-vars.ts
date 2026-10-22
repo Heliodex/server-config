@@ -51,7 +51,8 @@ function withoutHeredocs(source: string): string[] {
 		}
 		const start = /<<-?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\1/.exec(line)
 		// A '#' line cannot start a heredoc, so keep comments in the stream.
-		if (start && !line.trimStart().startsWith("#")) terminator = start[2]
+		const heredocEnd = start?.[2]
+		if (heredocEnd && !line.trimStart().startsWith("#")) terminator = heredocEnd
 
 		result.push(line)
 	}
@@ -64,14 +65,20 @@ function assignedNames(lines: string[]): Set<string> {
 
 	for (const line of lines) {
 		// local/export/plain assignments, including the second and later names in `local a=1 b=2`
-		for (const m of line.matchAll(/(?:^|\s)(?:local\s+|export\s+)?([A-Za-z_][A-Za-z0-9_]*)=/g)) names.add(m[1])
+		for (const m of line.matchAll(/(?:^|\s)(?:local\s+|export\s+)?([A-Za-z_][A-Za-z0-9_]*)=/g)) {
+			const name = m[1]
+			if (name) names.add(name)
+		}
 
 		// for loop variables
-		for (const m of line.matchAll(/\bfor\s+([A-Za-z_][A-Za-z0-9_]*)/g)) names.add(m[1])
+		for (const m of line.matchAll(/\bfor\s+([A-Za-z_][A-Za-z0-9_]*)/g)) {
+			const name = m[1]
+			if (name) names.add(name)
+		}
 		// read targets, which may be several, and may follow a pipe
 		const read = /\bread\s+(.*)$/.exec(line)
 		if (read) {
-			let rest = read[1]
+			let rest = read[1] ?? ""
 			rest = rest.replaceAll(/^-[a-zA-Z]+\s+/g, "")
 			rest = rest
 				.replace(/<<<.*$/, "")
@@ -81,7 +88,10 @@ function assignedNames(lines: string[]): Set<string> {
 			for (const token of rest.trim().split(/\s+/)) if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(token)) names.add(token)
 		}
 		// ${VAR:-default} and friends are safe under set -u
-		for (const m of line.matchAll(/\$\{([A-Za-z_][A-Za-z0-9_]*)(?::-|:=|:\+)/g)) names.add(m[1])
+		for (const m of line.matchAll(/\$\{([A-Za-z_][A-Za-z0-9_]*)(?::-|:=|:\+)/g)) {
+			const name = m[1]
+			if (name) names.add(name)
+		}
 	}
 	return names
 }
@@ -128,7 +138,10 @@ function usedNames(lines: string[]): Set<string> {
 		if (raw.trimStart().startsWith("#")) continue
 		const line = stripLiterals(raw)
 
-		for (const m of line.matchAll(/\$\{?([A-Za-z_][A-Za-z0-9_]*)/g)) if (!KNOWN.has(m[1])) names.add(m[1])
+		for (const m of line.matchAll(/\$\{?([A-Za-z_][A-Za-z0-9_]*)/g)) {
+			const name = m[1]
+			if (name && !KNOWN.has(name)) names.add(name)
+		}
 	}
 	return names
 }
