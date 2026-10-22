@@ -1,0 +1,109 @@
+# Heliodex 2025/05/09 -- after updating to OpenSUSE (it's cool), this was the ONLY file I forgot to back up (the 2nd time it was lost, after the ubuntu upgrade I think lolll)
+{
+	email heli@odex.cf
+}
+
+# todo 2025/07/07: update when Let's Encrypt offers IP certs on prod
+http://51.148.150.203,
+http://[::ffff:3394:96cb],
+http://[2a02:8012:477e:1::e] {
+	respond "Sup"
+}
+
+# rip 192.168.178.24 we now at 192.168.1.15
+http://:80 {
+	respond "bruh"
+}
+
+# lnbits
+# (2025/08/09 time 2 make it public)
+ln.heliodex.cf {
+	reverse_proxy :5000
+}
+
+# albyhub
+http://:8030 {
+	reverse_proxy :8029
+}
+
+# 2025/07/11 coputer time
+coputer.heliodex.cf,
+*.coputer.heliodex.cf {
+	tls {
+		dns netlify {$NETLIFY_API_TOKEN}
+	}
+	#respond "WORKS"
+	reverse_proxy :2517
+}
+
+# 2025/07/30 radicle time
+code.heliodex.cf {
+	header +Access-Control-Allow-Origin *
+	header +Access-Control-Allow-Origin https://seed.heliodex.cf
+	root * /var/www/radicle-explorer
+	file_server
+	try_files {path} /index.html
+	#reverse_proxy :8775
+}
+
+seed.heliodex.cf {
+	header Access-Control-Allow-Origin https://code.heliodex.cf, *
+	header Referrer-Policy unsafe-url
+	reverse_proxy :8775
+}
+
+# 2025/08/19 erlang moment
+#luau-erlang.heliodex.cf {
+#	rewrite * /erl/pages:run
+#	reverse_proxy :5555
+#}
+# 2025/12/06 a second erlang moment has hit the server tower
+
+rcc.heliodex.cf {
+	reverse_proxy :64990
+}
+
+#setup.staging.xtcy.dev {
+#	respond "hello"
+#	#reverse_proxy setup.xtcy.dev
+#}
+
+setup.mercs.dev {
+	root * /var/www/mercury-setup
+
+	file_server browse
+}
+
+# 2026/03/21 unlegendary
+
+ysws.heliodex.cf {
+	reverse_proxy :3443
+}
+
+# 2026/06/22 WE BACK
+
+rinmex-ritlys.heliodex.cf {
+	reverse_proxy :8080
+}
+
+# 2026/08/18 fuck docker fuck orchard
+
+powertools.hackclub.com {
+	respond "Power Tools has ended! Check out Defector at https://defector.hackclub.com"
+}
+
+# 2026/08/28 hope this one gets submissions
+
+defector.hackclub.com {
+	reverse_proxy :3000
+}
+
+# 2026/09/11 this is PEAK
+
+peaks.heliodex.cf {
+	reverse_proxy :6511
+}
+
+import /var/www/fileserver/Caddyfile
+import /var/www/mercury-site/Caddyfile
+import /var/www/minecraft/Caddyfile

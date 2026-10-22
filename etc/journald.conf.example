@@ -1,0 +1,37 @@
+# journald configuration
+#
+# SystemMaxUse=1G
+#
+# The box was at 99% full with an uncapped journal and 122 MB of pm2
+# logs. The journal now takes the place of the pm2 logs, so it needs a
+# limit of its own.
+#
+# The services in this repo log to the journal rather than to files, so
+# the volume goes up. 1G is roughly 100x what the journal was using
+# before the migration.
+#
+# Also worth setting:
+#
+#   SystemKeepFree=2G
+#     Leave room for other things. The default is 15% of the filesystem,
+#     which on a 220G disk is 33G - more than the disk has free, so it
+#     is not much of a guarantee. On this box the disk is small and
+#     busy, so an explicit floor is better.
+#
+#   MaxRetentionSec=2weeks
+#     Without this, journals are only ever removed when the size limit
+#     is hit. With a 1G cap that could mean months of history. Two
+#     weeks is enough to debug a boot problem and not enough to fill
+#     the disk.
+#
+#   RateLimitBurst=1000
+#     A service that logs in a tight loop can fill the journal
+#     quickly. The default is 10000 messages in 30s, which a runaway
+#     service will hit easily, and the rest is dropped. 1000 in the
+#     default 30s window is still generous.
+#
+# Apply with:
+#   sudo systemctl restart systemd-journald
+#
+# And check what it took:
+#   journalctl --disk-usage
