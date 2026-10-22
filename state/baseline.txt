@@ -1,0 +1,189 @@
+# generated 2026-10-21T17:34:36+01:00 on opensuseserver
+
+## apparmor.service
+Requires=var.mount system.slice -.mount
+After=-.mount systemd-journald.socket systemd-sysctl.service var.mount local-fs.target system.slice systemd-journald-audit.socket
+FragmentPath=/usr/lib/systemd/system/apparmor.service
+DropInPaths=
+Restart=no
+ExecStart={ path=/lib/apparmor/apparmor.systemd ; argv[]=/lib/apparmor/apparmor.systemd reload ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## appstream-sync-cache.service
+Requires=sysinit.target system.slice
+After=systemd-journald.socket basic.target sysinit.target local-fs.target system.slice
+FragmentPath=/usr/lib/systemd/system/appstream-sync-cache.service
+DropInPaths=
+Restart=no
+ExecStart={ path=/usr/bin/zypper ; argv[]=/usr/bin/zypper appstream-cache ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## auditd.service
+Requires=audit-rules.service system.slice
+After=systemd-tmpfiles-setup.service systemd-journald.socket system.slice audit-rules.service local-fs.target
+FragmentPath=/usr/lib/systemd/system/auditd.service
+DropInPaths=
+Restart=on-failure
+ExecStart={ path=/usr/sbin/auditd ; argv[]=/usr/sbin/auditd ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## audit-rules.service
+Requires=system.slice
+After=systemd-tmpfiles-setup.service systemd-journald.socket system.slice local-fs.target
+FragmentPath=/usr/lib/systemd/system/audit-rules.service
+DropInPaths=
+Restart=no
+ExecStart={ path=/usr/sbin/augenrules ; argv[]=/usr/sbin/augenrules --load ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## avahi-daemon.service
+Requires=avahi-daemon.socket dbus.socket sysinit.target system.slice
+After=avahi-daemon.socket system.slice basic.target systemd-journald.socket dbus.socket sysinit.target
+FragmentPath=/usr/lib/systemd/system/avahi-daemon.service
+DropInPaths=
+Restart=no
+ExecStart={ path=/usr/sbin/avahi-daemon ; argv[]=/usr/sbin/avahi-daemon -s ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## avahi-daemon.socket
+Requires=sysinit.target system.slice -.mount
+After=sysinit.target system.slice -.mount
+FragmentPath=/usr/lib/systemd/system/avahi-daemon.socket
+DropInPaths=
+User=
+
+## backup-rpmdb.timer
+Requires=var.mount -.mount sysinit.target
+After=sysinit.target local-fs.target time-sync.target var.mount -.mount time-set.target
+FragmentPath=/usr/lib/systemd/system/backup-rpmdb.timer
+DropInPaths=
+
+## backup-sysconfig.timer
+Requires=var.mount -.mount sysinit.target
+After=time-sync.target network.target -.mount var.mount sysinit.target time-set.target local-fs.target
+FragmentPath=/usr/lib/systemd/system/backup-sysconfig.timer
+DropInPaths=
+
+## blk-availability.service
+Requires=system.slice
+After=system.slice rbdmap.service systemd-journald.socket iscsid.service iscsi.service fcoe.service iscsi-shutdown.service
+FragmentPath=/usr/lib/systemd/system/blk-availability.service
+DropInPaths=
+Restart=no
+ExecStart={ path=/usr/bin/true ; argv[]=/usr/bin/true ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## bluetooth.service
+Requires=sysinit.target dbus.socket -.mount system.slice var.mount
+After=sysinit.target systemd-remount-fs.service -.mount var.mount systemd-tmpfiles-setup.service dbus.socket tmp.mount system.slice basic.target systemd-journald.socket
+FragmentPath=/usr/lib/systemd/system/bluetooth.service
+DropInPaths=
+Restart=no
+ExecStart={ path=/usr/libexec/bluetooth/bluetoothd ; argv[]=/usr/libexec/bluetooth/bluetoothd ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## btrfs-balance.timer
+Requires=sysinit.target -.mount var.mount
+After=time-set.target var.mount sysinit.target -.mount time-sync.target
+FragmentPath=/usr/lib/systemd/system/btrfs-balance.timer
+DropInPaths=/etc/systemd/system/btrfs-balance.timer.d/schedule.conf
+
+## btrfsmaintenance-refresh.path
+Requires=sysinit.target -.mount
+After=sysinit.target -.mount
+FragmentPath=/usr/lib/systemd/system/btrfsmaintenance-refresh.path
+DropInPaths=
+
+## btrfs-scrub.timer
+Requires=var.mount sysinit.target -.mount
+After=sysinit.target time-set.target var.mount -.mount time-sync.target
+FragmentPath=/usr/lib/systemd/system/btrfs-scrub.timer
+DropInPaths=/etc/systemd/system/btrfs-scrub.timer.d/schedule.conf
+
+## ca-certificates.path
+Requires=sysinit.target -.mount
+After=local-fs.target sysinit.target -.mount
+FragmentPath=/usr/lib/systemd/system/ca-certificates.path
+DropInPaths=
+
+## caddy.service
+Requires=sysinit.target network-online.target system.slice
+After=systemd-journald.socket network.target system.slice sysinit.target -.mount network-online.target systemd-tmpfiles-setup.service tmp.mount var.mount basic.target
+FragmentPath=/etc/systemd/system/caddy.service
+DropInPaths=
+Restart=no
+ExecStart={ path=/usr/bin/caddy ; argv[]=/usr/bin/caddy run --environ --config /home/heliodex/Caddyfile ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=caddy
+
+## check-battery.timer
+Requires=sysinit.target -.mount var.mount
+After=time-sync.target sysinit.target var.mount local-fs.target time-set.target -.mount
+FragmentPath=/usr/lib/systemd/system/check-battery.timer
+DropInPaths=
+
+## chronyd.service
+Requires=sysinit.target system.slice
+After=network.target sysinit.target var.mount systemd-journald.socket basic.target nss-lookup.target system.slice systemd-tmpfiles-setup.service tmp.mount -.mount
+FragmentPath=/usr/lib/systemd/system/chronyd.service
+DropInPaths=
+Restart=no
+ExecStart={ path=/usr/sbin/chronyd ; argv[]=/usr/sbin/chronyd -n $OPTIONS ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## cleanoldsepoldir.service
+Requires=-.mount system.slice sysinit.target
+After=health-checker.service basic.target systemd-journald.socket system.slice sysinit.target -.mount local-fs.target
+FragmentPath=/usr/lib/systemd/system/cleanoldsepoldir.service
+DropInPaths=
+Restart=no
+ExecStart={ path=/usr/libexec/selinux/cleanoldsepoldir.sh ; argv[]=/usr/libexec/selinux/cleanoldsepoldir.sh ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=root
+
+## cron.service
+Requires=sysinit.target system.slice
+After=postfix.service basic.target network.target systemd-journald.socket sendmail.service exim.service time-sync.target nss-user-lookup.target sysinit.target system.slice
+FragmentPath=/usr/lib/systemd/system/cron.service
+DropInPaths=
+Restart=on-abort
+ExecStart={ path=/usr/sbin/cron ; argv[]=/usr/sbin/cron -n ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## cups.path
+Requires=sysinit.target -.mount var.mount
+After=sysinit.target -.mount var.mount
+FragmentPath=/usr/lib/systemd/system/cups.path
+DropInPaths=
+
+## cups.service
+Requires=sysinit.target cups.socket system-cups.slice
+After=cups.socket sysinit.target basic.target cups.path system-cups.slice nslcd.service network.target time-set.target nss-user-lookup.target systemd-journald.socket
+FragmentPath=/usr/lib/systemd/system/cups.service
+DropInPaths=
+Restart=on-failure
+ExecStart={ path=/usr/sbin/cupsd ; argv[]=/usr/sbin/cupsd -l ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## cups.socket
+Requires=sysinit.target -.mount system.slice
+After=sysinit.target -.mount system.slice
+FragmentPath=/usr/lib/systemd/system/cups.socket
+DropInPaths=
+User=
+
+## dbus-broker.service
+Requires=system.slice dbus.socket
+After=systemd-tmpfiles-setup.service dbus.socket systemd-journald.socket -.mount system.slice var.mount
+FragmentPath=/usr/lib/systemd/system/dbus-broker.service
+DropInPaths=/usr/lib/systemd/system/dbus-broker.service.d/block-restart.conf
+Restart=no
+ExecStart={ path=/usr/bin/dbus-broker-launch ; argv[]=/usr/bin/dbus-broker-launch --scope system --audit ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+User=
+
+## dm-event.socket
+Requires=-.mount system.slice
+After=-.mount system.slice
+FragmentPath=/usr/lib/systemd/system/dm-event.socket
+DropInPaths=
+User=
+
+## drkonqi-coredump-processor@.service

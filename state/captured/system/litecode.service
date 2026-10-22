@@ -1,0 +1,10 @@
+[Unit]
+Description=Litecode
+
+[Service]
+User=heliodex
+Group=heliodex
+ExecStart=/usr/bin/litecode
+
+[Install]
+WantedBy=multi-user.target

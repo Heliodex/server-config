@@ -1,0 +1,10 @@
+[Unit]
+Description=LNbits
+
+[Service]
+User=heliodex
+Group=heliodex
+ExecStart=/bin/bash /usr/sbin/lnbits.sh
+
+[Install]
+WantedBy=multi-user.target

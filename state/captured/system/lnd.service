@@ -1,0 +1,10 @@
+[Unit]
+Description=Lightning Network Daemon
+
+[Service]
+User=heliodex
+Group=heliodex
+ExecStart=/bin/bash /usr/sbin/lnd.sh
+
+[Install]
+WantedBy=multi-user.target

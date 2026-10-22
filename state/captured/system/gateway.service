@@ -1,0 +1,10 @@
+[Unit]
+Description=Litecode
+
+[Service]
+User=heliodex
+Group=heliodex
+ExecStart=/usr/bin/gateway coputer.heliodex.cf
+
+[Install]
+WantedBy=multi-user.target

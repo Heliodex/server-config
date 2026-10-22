@@ -1,0 +1,8 @@
+[Unit]
+Description=Server startup script
+
+[Service]
+ExecStart=/bin/bash /usr/sbin/STARTUP.sh
+
+[Install]
+WantedBy=multi-user.target

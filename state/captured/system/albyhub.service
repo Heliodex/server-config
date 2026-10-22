@@ -1,0 +1,16 @@
+[Unit]
+Description=Alby Hub
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+Group=root
+ExecStart=/bin/bash /usr/sbin/albyhub.sh
+Environment="PORT=8029"
+
+[Install]
+WantedBy=multi-user.target
