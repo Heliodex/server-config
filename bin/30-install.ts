@@ -61,7 +61,7 @@ for await (const dir of new Bun.Glob("*.d").scan({ cwd: SRC, onlyFiles: false })
 console.log("\n== installing helper scripts")
 await run(["install", "-d", "-m", "0755", "/usr/local/libexec"])
 const helpers: string[] = []
-for (const pattern of ["*.sh", "*.js"])
+for (const pattern of ["*.sh", "*.ts"])
 	for await (const name of new Bun.Glob(pattern).scan({ cwd: `${REPO}/libexec` })) helpers.push(name)
 
 for (const name of helpers.toSorted())

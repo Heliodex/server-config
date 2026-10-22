@@ -24,7 +24,7 @@ if [ ! -x "$BUN" ]; then
 	exit 0
 fi
 
-if "$BUN" /usr/local/libexec/mc-rcon.js "$RCON_HOST" "$RCON_PORT" "$PASS_FILE" stop; then
+if "$BUN" /usr/local/libexec/mc-rcon.ts "$RCON_HOST" "$RCON_PORT" "$PASS_FILE" stop; then
 	echo "mc-stop: stop command sent"
 else
 	echo "mc-stop: RCON stop failed; systemd will kill the server" >&2

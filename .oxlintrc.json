@@ -14,7 +14,6 @@
 		"builtin": true,
 		"node": true
 	},
-	"ignorePatterns": ["libexec/**"],
 	"options": {
 		"denyWarnings": true,
 		"reportUnusedDisableDirectives": "warn",

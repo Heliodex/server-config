@@ -132,9 +132,12 @@ formats.
 
 `tsconfig.json` is what lets the type-aware pass resolve `bun`; without it
 every `$` template is reported as an error type. `biome.json` also formats
-and sorts. `libexec/` is excluded from oxlint, because the RCON client is
-plain JavaScript that cannot satisfy the unsafe-* rules without types, and
-its fixer rewrites it into worse code than it started as.
+and sorts.
+
+Everything TypeScript is covered, including `libexec/mc-rcon.ts`. When that
+was plain JavaScript it had to be excluded: without annotations every
+parameter was `any`, the unsafe-* rules fired on all of it, and the fixer
+rewrote it into worse code than it started as.
 
 ## Applying
 

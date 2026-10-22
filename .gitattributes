@@ -15,7 +15,7 @@ etc/caddy/Caddyfile 644
 
 # Helper scripts: executable
 libexec/*.sh 755
-libexec/*.js 755
+libexec/*.ts 755
 
 # Scripts are executable
 bin/*.sh 755
