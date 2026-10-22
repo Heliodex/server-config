@@ -3,7 +3,7 @@
 //
 // Run:  sudo bun bin/10-secrets.ts
 //
-// Port of bin/10-secrets.sh. The credential's embedded name, its filename and the ID the unit asks for are all the same string with no extension: `systemd-creds decrypt` validates the embedded name against the basename, while the service manager validates it against the ID, and a mismatch is refused.
+// The credential's embedded name, its filename and the ID the unit asks for are all the same string with no extension: `systemd-creds decrypt` validates the embedded name against the basename, while the service manager validates it against the ID, and a mismatch is refused.
 
 import { $ } from "bun"
 import { exists, label, root } from "./_lib.ts"

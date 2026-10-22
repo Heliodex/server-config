@@ -3,7 +3,7 @@
 //
 // Run:  sudo bun bin/50-retire.ts
 //
-// Port of bin/50-retire.sh. Disables and removes startup.service (which only ran four non-permanent firewall-cmd calls), gateway.service, litecode.service, wallflower.service and the unused user unit t3code.service, then installs the firewalld rules that startup.service was pretending to do.
+// Disables and removes startup.service (which only ran four non-permanent firewall-cmd calls), gateway.service, litecode.service, wallflower.service and the unused user unit t3code.service, then installs the firewalld rules that startup.service was pretending to do.
 
 import { $ } from "bun"
 import { exists, root } from "./_lib.ts"

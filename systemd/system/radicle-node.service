@@ -21,7 +21,7 @@ Environment=RUST_LOG=info
 
 # The keystore is passphrase-protected, so the node needs the passphrase to unlock it at startup. It is kept in a root-owned 0400 file rather than in this unit file, where "systemctl cat" would expose it.
 #
-# Run bin/16-radicle-passphrase.sh to create it.
+# Run bun bin/16-radicle-passphrase.ts to create it.
 EnvironmentFile=-/etc/radicle/radicle.env
 
 Restart=on-failure

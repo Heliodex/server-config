@@ -36,9 +36,9 @@ The unnumbered ones are tools rather than steps, and can be run at any
 time:
 
 ```bash
-bash bin/status.sh        # quick table: active, enabled, restart counts
-sudo bash bin/reboot-check.sh   # full behavioural check after a reboot
-bash bin/lint-vars.sh     # unbound variables in the scripts themselves
+bun bin/status.ts       # quick table: active, enabled, restart counts
+bun bin/reboot-check.ts # full behavioural check after a reboot
+bun bin/lint-vars.ts    # unbound variables in the remaining shell helpers
 ```
 
 Every step is idempotent. Running the whole sequence again on a working
@@ -46,74 +46,75 @@ machine should change nothing.
 
 ### Formatting
 
-Shell scripts are formatted with [`shfmt`](https://github.com/mvdan/sh).
-The settings live in `.editorconfig` — tab indent, indented `case`
-bodies, operators at the start of a continuation line — so no flags are
-needed:
+The TypeScript is formatted by `biome`, through `bun lint:fix`. The two
+shell helpers left in `libexec/` are formatted with
+[`shfmt`](https://github.com/mvdan/sh), whose settings live in
+`.editorconfig` — tab indent, indented `case` bodies, operators at the
+start of a continuation line — so no flags are needed:
 
 ```bash
-shfmt -w bin/*.sh libexec/*.sh
+shfmt -w libexec/*.sh
 ```
 
-`bin/lint-vars.sh` is a different check: it finds variables used but
-never assigned, which under `set -u` are runtime crashes.
+`bin/lint-vars.ts` is a different check again: it finds variables used
+but never assigned, which under `set -u` are runtime crashes. It now
+only has `libexec/` to look at, which is still worth guarding because
+`mc-stop.sh` is what stops the Minecraft server.
 
-### TypeScript equivalents
+### Why TypeScript
 
-Every script in `bin/` has a `.ts` beside it, run with Bun instead of
-bash:
+The scripts are TypeScript run by Bun. They elevate themselves, so no
+`sudo` is needed and `sudo`'s `PATH` cannot lose Bun:
 
 ```bash
 bun bin/status.ts
-sudo "$(command -v bun)" bin/40-selinux.ts
+bun bin/40-selinux.ts
 ```
 
-Bun shell escapes interpolated values, turns a non-zero exit into an
-exception, and gives arrays, objects and `Bun.Glob`. `bin/_lib.ts` holds
-the shared parts: the root check, section headings, aligned output and a
-hidden-input prompt.
+What that buys is not brevity. Measured before the shell versions were
+removed, code only and comments excluded: **1391 lines of bash became
+1366 of TypeScript**, two percent shorter. Where it did win was loops,
+tables and error handling:
 
-They are **not** shorter on the whole. Counting only code, comments
-excluded:
+| Script | bash | TS |
+|---|---|---|
+| `reboot-check` | 246 | 213 |
+| `10-secrets` | 120 | 97 |
+| `30-install` | 148 | 132 |
+| `16-radicle-passphrase` | 53 | 40 |
+| `lint-vars` | 89 | 114 |
+| `20-caddy` | 84 | 95 |
+| `40-selinux` | 115 | 123 |
+| **all thirteen** | **1391** | **1366** |
 
-| Script | bash | TS | |
-|---|---|---|---|
-| `reboot-check` | 246 | 213 | **−33** |
-| `10-secrets` | 120 | 97 | **−23** |
-| `30-install` | 148 | 132 | **−16** |
-| `16-radicle-passphrase` | 53 | 40 | **−13** |
-| `14-lnd-creds` | 165 | 163 | −2 |
-| `50-retire` | 61 | 62 | +1 |
-| `60-enable-all` | 74 | 75 | +1 |
-| `22-caddy-webroot` | 108 | 112 | +4 |
-| `12-lnd-wallet` | 30 | 36 | +6 |
-| `status` | 98 | 104 | +6 |
-| `40-selinux` | 115 | 123 | +8 |
-| `20-caddy` | 84 | 95 | +11 |
-| `lint-vars` | 89 | 114 | **+25** |
-| **total** | **1391** | **1366** | **−25** |
+The value is elsewhere:
 
-Where it wins is loops, tables and error handling: `reboot-check` and
-`status` lose their `printf '%-48s'` alignment and their
-`$(cmd || echo fallback)` dances, and `30-install` loses the dry-run
-`run()` wrapper.
+* **Failure is loud.** Bash printed an error and carried on; `await` on a
+  non-zero exit throws unless told otherwise. Most of the long evening
+  that produced this repo was silent failures of that kind - a `chmod`
+  that did not happen, an `EnvironmentFile` that systemd could not read,
+  a `cmp` that never ran.
+* **It is checked before it runs.** `bun check` found ten type errors that
+  both linters passed, all of them real: an unchecked array index, an
+  optional regex group added to a `Set`. The shell scripts had no such
+  check, which is how `20-caddy.sh` compared the wrong field of `ls -Z`
+  for months and relabelled every run.
+* **No quoting discipline.** `` $`cmd ${value}` `` passes `value` as one
+  escaped argument. The shell versions were full of `"$var"` and the
+  occasional forgotten quote.
+* **One place for the shared parts.** `bin/_lib.ts` holds the root check,
+  section headings, aligned output and the hidden-input prompt.
 
-Where it loses is anything that was a shell pipeline. `lint-vars` grew
-the most because a shell script that is *about* shell quoting has to
-reimplement that quoting in TypeScript. `20-caddy` and `40-selinux` grew
-on `grep`/`sed`/`find` reimplemented as regexes and globs.
+The cost is anything that was a shell pipeline. `lint-vars` grew the most
+because a script about shell quoting has to reimplement that quoting in
+TypeScript; `20-caddy` and `40-selinux` grew on `grep`/`sed`/`find`
+rebuilt from regexes and globs.
 
-Two caveats before relying on them:
+The shell versions are still in history, at `3e1e422`:
 
-* the `.sh` versions are the ones that have been run against the server
-  end to end; the `.ts` are equivalents that pass a build check and, for
-  `status`, `lint-vars` and the root guard, have been executed, but the
-  system-changing ones have not.
-* `sudo` resets `PATH`, and Bun usually lives in `~/.bun/bin`. Use
-  `sudo "$(command -v bun)" bin/<name>.ts`, or add Bun to `secure_path`.
-
-Keeping both long term would let them drift. The intent is to pick one
-per script once the TypeScript versions have been exercised.
+```bash
+git show 3e1e422:bin/40-selinux.sh
+```
 
 ### Linting
 
@@ -142,38 +143,38 @@ left behind.
 
 ```bash
 # 1. secrets and configuration
-sudo bash bin/10-secrets.sh            # credential store
-sudo bash bin/12-lnd-wallet.sh         # wallet password where lnd wants it
-sudo bash bin/14-lnd-creds.sh          # bitcoind RPC credentials, lnd.conf
-sudo bash bin/16-radicle-passphrase.sh # radicle keystore passphrase
+bun bin/10-secrets.ts            # credential store
+bun bin/12-lnd-wallet.ts         # wallet password where lnd wants it
+bun bin/14-lnd-creds.ts          # bitcoind RPC credentials, lnd.conf
+bun bin/16-radicle-passphrase.ts # radicle keystore passphrase
 
 # 2. the web root
-sudo bash bin/20-caddy.sh              # Caddyfile, caddy binary, token
-sudo bash bin/22-caddy-webroot.sh      # /var/www layout and path rewrites
+bun bin/20-caddy.ts              # Caddyfile, caddy binary, token
+bun bin/22-caddy-webroot.ts      # /var/www layout and path rewrites
 
 # 3. units
-sudo bash bin/30-install.sh --apply    # units, helpers, lnbits extraction
+bun bin/30-install.ts --apply    # units, helpers, lnbits extraction
 
 # 4. SELinux, which needs the units and the web root to exist first
-sudo bash bin/40-selinux.sh
+bun bin/40-selinux.ts
 
 # 5. retire the old supervisors and open the firewall permanently
-sudo bash bin/50-retire.sh
+bun bin/50-retire.ts
 
 # 6. bring it up
-sudo bash bin/60-enable-all.sh
+bun bin/60-enable-all.ts
 ```
 
-`30-install.sh` installs and reloads but does **not** start or enable
+`30-install.ts` installs and reloads but does **not** start or enable
 anything, so that the first run can be watched one unit at a time.
-`60-enable-all.sh` does the enabling, in dependency order.
+`60-enable-all.ts` does the enabling, in dependency order.
 
 Start order matters: **bitcoind → lnd → lnbits/albyhub**, then the apps,
 then caddy last (it reverse-proxies all of them).
 
-`40-selinux.sh` is the only script that touches SELinux policy, and
-everything it does is persistent. It must run **after** `30-install.sh`
-and `22-caddy-webroot.sh`, because it reads `EnvironmentFile=` out of the
+`40-selinux.ts` is the only script that touches SELinux policy, and
+everything it does is persistent. It must run **after** `30-install.ts`
+and `22-caddy-webroot.ts`, because it reads `EnvironmentFile=` out of the
 installed units and labels the trees behind the `/var/www` symlinks.
 
 ## The service map
@@ -215,7 +216,7 @@ directories, which is a separate piece of work.
   systemd. Every pm2 app now has a real unit.
 - GNU Screen — same problem, plus no restart policy.
 
-`bin/50-retire.sh` removes all of these.
+`bin/50-retire.ts` removes all of these.
 
 ## The web root
 
@@ -233,8 +234,8 @@ a user's home. The configuration and the served trees therefore live under
 ```
 
 The served trees are symlinks, so the data has one home and there is no
-stale duplicate to keep in sync. `bin/22-caddy-webroot.sh` creates the
-layout and rewrites the paths inside the Caddyfile; `bin/40-selinux.sh`
+stale duplicate to keep in sync. `bin/22-caddy-webroot.ts` creates the
+layout and rewrites the paths inside the Caddyfile; `bin/40-selinux.ts`
 labels the files behind the symlinks, since SELinux resolves a link and
 applies the target's label.
 
@@ -261,7 +262,7 @@ needs has to be labelled:
 sudo semanage port -a -t http_port_t -p tcp 8030
 ```
 
-`bin/40-selinux.sh` works the ports out of the Caddyfile and labels
+`bin/40-selinux.ts` works the ports out of the Caddyfile and labels
 them.
 
 ## SELinux
@@ -278,7 +279,7 @@ enforcing. Two consequences for units:
     tcontext=unconfined_u:object_r:user_home_t:s0
   ```
 
-  `bin/40-selinux.sh` relabels them. It does not weaken the policy:
+  `bin/40-selinux.ts` relabels them. It does not weaken the policy:
   `bin_t` is the correct label for an executable, and the rule permitting
   `init_t` to execute `bin_t` is already there. It only stops SELinux
   treating a program as user data.
@@ -294,7 +295,7 @@ enforcing. Two consequences for units:
 
 Nothing secret is committed. The `systemd-creds` blobs live in
 `/etc/credstore.encrypted/` on the server and are encrypted to the host key
-(or the TPM2 chip, if present). `bin/10-secrets.sh` creates them.
+(or the TPM2 chip, if present). `bin/10-secrets.ts` creates them.
 
 The naming has to satisfy two different checks, so the embedded name, the
 filename and the unit's credential ID are all the same string, with no
@@ -313,11 +314,11 @@ There is a second, unrelated failure mode: systemd mounts a tmpfs for the
 credentials directory, and that needs kernel 5.12+. Where the mount is
 unavailable, every unit using `LoadCredential=` or `LoadCredentialEncrypted=`
 dies with `243/CREDENTIALS` and "Failed to set up credentials: Permission
-denied". `bin/10-secrets.sh` writes a plain-file fallback for the
+denied". `bin/10-secrets.ts` writes a plain-file fallback for the
 RCON password for exactly this reason.
 
 The LND wallet password deliberately avoids that machinery: lnd wants a file
-at a fixed path, so `bin/12-lnd-wallet.sh` decrypts the credential to
+at a fixed path, so `bin/12-lnd-wallet.ts` decrypts the credential to
 `/home/heliodex/.lnd/wallet-password` (0400, owned by heliodex) and lnd
 reads it with `--wallet-unlock-password-file`. The PaperMC RCON password
 works the same way, with a plain-file fallback in `mc-stop.sh`.
@@ -330,7 +331,7 @@ line in `/usr/sbin/lnd.sh`, and in `/srv/hdd/.bitcoin/bitcoin.conf`. Move it
 to `lnd.conf` and a systemd credential.
 
 The LND wallet password is needed by lnd at a fixed path for
-`--wallet-unlock-password-file`. `bin/12-lnd-wallet.sh` decrypts the
+`--wallet-unlock-password-file`. `bin/12-lnd-wallet.ts` decrypts the
 credential and writes that file (`heliodex:heliodex`, 0400).
 
 The Netlify API token was inline in the Caddyfile. It now lives in
@@ -344,11 +345,11 @@ killed. RCON must be enabled in `server.properties` for this to work.
 ## Checking it
 
 ```bash
-bash bin/status.sh              # a summary table: active, enabled, restarts
-sudo bash bin/reboot-check.sh   # behaviour, after a reboot
+bun bin/status.ts              # a summary table: active, enabled, restarts
+bun bin/reboot-check.ts   # behaviour, after a reboot
 ```
 
-`status.sh` is the quick look. `reboot-check.sh` is the real test: it
+`status.ts` is the quick look. `reboot-check.ts` is the real test: it
 waits for the boot to finish, then checks that each service is *listening*
 rather than merely active, that lnd's wallet unlocked, that caddy has
 certificates, that `/srv/hdd` is mounted, and that the firewall rules and

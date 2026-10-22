@@ -17,7 +17,7 @@ WorkingDirectory=/home/heliodex/bitcoin
 # -daemon=0 overrides daemon=1 in /srv/hdd/.bitcoin/bitcoin.conf.
 # Without it bitcoind forks into the background, the main process exits immediately, and systemd reports "Deactivated successfully" while an unsupervised bitcoind keeps running.
 #
-# -conf points at the config bitcoind actually reads, on btrfs with real permissions. The datadir is a fuseblk mount where every file is 0777, so the RPC password cannot live there. See bin/14-lnd-creds.sh.
+# -conf points at the config bitcoind actually reads, on btrfs with real permissions. The datadir is a fuseblk mount where every file is 0777, so the RPC password cannot live there. See bin/14-lnd-creds.ts.
 ExecStart=/home/heliodex/bitcoin/bitcoin-30.0/bin/bitcoind -daemon=0 -datadir=/srv/hdd/.bitcoin -conf=/etc/bitcoin/bitcoin.conf
 
 Restart=on-failure

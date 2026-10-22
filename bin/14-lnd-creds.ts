@@ -3,7 +3,7 @@
 //
 // Run:  sudo bun bin/14-lnd-creds.ts
 //
-// Port of bin/14-lnd-creds.sh. The password lives in two readable places: /srv/hdd/.bitcoin/bitcoin.conf on a fuseblk mount where every file is 0777, and on the command line in /usr/sbin/lnd.sh. This moves it to /etc/bitcoin/bitcoin.conf (0640 root:heliodex, on btrfs) which bitcoind reads via -conf, and to ~/.lnd/lnd.conf (0600) which lnd reads automatically.
+// The password lives in two readable places: /srv/hdd/.bitcoin/bitcoin.conf on a fuseblk mount where every file is 0777, and on the command line in /usr/sbin/lnd.sh. This moves it to /etc/bitcoin/bitcoin.conf (0640 root:heliodex, on btrfs) which bitcoind reads via -conf, and to ~/.lnd/lnd.conf (0600) which lnd reads automatically.
 
 import { $ } from "bun"
 import { exists, label, REPO, root, section } from "./_lib.ts"

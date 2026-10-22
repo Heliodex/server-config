@@ -3,7 +3,7 @@
 //
 // Run:  sudo bun bin/60-enable-all.ts
 //
-// Port of bin/60-enable-all.sh. 30-install.ts installs but deliberately does not enable, so that the first run can be watched one unit at a time. This enables and starts them in dependency order and reports which ones came up.
+// 30-install.ts installs but deliberately does not enable, so that the first run can be watched one unit at a time. This enables and starts them in dependency order and reports which ones came up.
 
 import { $ } from "bun"
 import { root, section } from "./_lib.ts"

@@ -4,7 +4,7 @@
 // Run:  bun bin/status.ts
 // Out:  out/status.txt, and the same text on the terminal
 //
-// Port of bin/status.sh. The units are installed and enabled separately, so this distinguishes "the unit file exists" from "the unit is on".
+// The units are installed and enabled separately, so this distinguishes "the unit file exists" from "the unit is on".
 
 import { $ } from "bun"
 import { exists, REPO } from "./_lib.ts"

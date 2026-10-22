@@ -10,12 +10,23 @@ type Cmd = ReturnType<typeof $>
 
 export const REPO = `${import.meta.dir}/..`
 
-/** The same root check every shell script starts with. */
+/**
+ * Be root, or become root.
+ *
+ * The shell scripts required `sudo bash bin/x.sh`, which fails quietly in
+ * a different way: `sudo` resets PATH, and Bun lives in ~/.bun/bin. This
+ * re-runs itself through sudo with the absolute path to Bun, so
+ * `bun bin/40-selinux.ts` is enough and the PATH problem cannot happen.
+ */
 export function root(): void {
-	if (process.getuid?.() !== 0) {
-		console.error("must run as root")
-		process.exit(1)
-	}
+	if (process.getuid?.() === 0) return
+
+	const result = Bun.spawnSync(["sudo", process.execPath, ...process.argv.slice(1)], {
+		stderr: "inherit",
+		stdin: "inherit",
+		stdout: "inherit",
+	})
+	process.exit(result.exitCode ?? 1)
 }
 
 /** "==================== TITLE ====================" */

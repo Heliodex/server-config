@@ -3,7 +3,7 @@
 //
 // Run:  sudo bun bin/12-lnd-wallet.ts
 //
-// Port of bin/12-lnd-wallet.sh. lnd's --wallet-unlock-password-file wants a plain file owned by the lnd user, mode 0400. This decrypts the systemd credential and writes that file. Re-run it if the credential is ever rotated.
+// lnd's --wallet-unlock-password-file wants a plain file owned by the lnd user, mode 0400. This decrypts the systemd credential and writes that file. Re-run it if the credential is ever rotated.
 
 import { $ } from "bun"
 import { exists, root } from "./_lib.ts"

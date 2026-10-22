@@ -19,3 +19,4 @@ libexec/*.js 755
 
 # Scripts are executable
 bin/*.sh 755
+bin/*.ts 755

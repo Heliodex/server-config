@@ -3,7 +3,7 @@
 //
 // Run:  sudo bun bin/22-caddy-webroot.ts
 //
-// Port of bin/22-caddy-webroot.sh. Caddy runs in the httpd_t domain, which may not read files under a user's home, so the served trees are symlinks from /var/www back to where the data actually lives. The Caddyfile's paths are rewritten to match.
+// Caddy runs in the httpd_t domain, which may not read files under a user's home, so the served trees are symlinks from /var/www back to where the data actually lives. The Caddyfile's paths are rewritten to match.
 
 import { $ } from "bun"
 import { exists, isDir, label, root } from "./_lib.ts"

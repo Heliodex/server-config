@@ -4,7 +4,7 @@
 // Run:  bun bin/30-install.ts           (dry run, prints what it would do)
 // sudo bun bin/30-install.ts --apply
 //
-// Port of bin/30-install.sh. Installs units, helpers and the extracted lnbits tree. Does not start or enable anything: that is a separate, deliberate step.
+// Installs units, helpers and the extracted lnbits tree. Does not start or enable anything: that is a separate, deliberate step.
 
 import { $ } from "bun"
 import { exists, label, REPO, root } from "./_lib.ts"

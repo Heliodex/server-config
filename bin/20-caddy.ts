@@ -3,7 +3,7 @@
 //
 // Run:  sudo bun bin/20-caddy.ts
 //
-// Port of bin/20-caddy.sh. The custom build lives in /usr/local/bin so a package update cannot overwrite it, and needs the httpd_exec_t label because that is what puts the process in the httpd_t domain.
+// The custom build lives in /usr/local/bin so a package update cannot overwrite it, and needs the httpd_exec_t label because that is what puts the process in the httpd_t domain.
 
 import { $ } from "bun"
 import { exists, have, REPO, root } from "./_lib.ts"

@@ -4,7 +4,7 @@
 // Run:  sudo bun bin/reboot-check.ts
 // Out:  out/reboot-check.txt, and the same text on the terminal
 //
-// Port of bin/reboot-check.sh. It waits for the boot to finish before judging anything, because a check that runs mid-boot reports every service that has not started yet as broken.
+// It waits for the boot to finish before judging anything, because a check that runs mid-boot reports every service that has not started yet as broken.
 //
 // A service can be active and still be broken, so this checks behaviour:
 // that each one is listening rather than merely running, that lnd's wallet unlocked, that caddy obtained certificates, that /srv/hdd is mounted, and that the firewall rules and the SELinux boolean survived.

@@ -3,7 +3,7 @@
 //
 // Run:  sudo bun bin/40-selinux.ts
 //
-// Port of bin/40-selinux.sh, and the only thing that changes SELinux policy. Everything here is persistent: fcontext rules, port labels and one boolean.
+// The only thing that changes SELinux policy. Everything here is persistent: fcontext rules, port labels and one boolean.
 //
 // * a binary systemd executes directly must be bin_t, or init_t is denied; a symlink does not help, because SELinux applies the target's label
 // * caddy must be httpd_exec_t rather than bin_t, since that is what puts it in the httpd_t domain

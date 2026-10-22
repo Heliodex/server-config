@@ -35,7 +35,7 @@ Group=heliodex
 #
 # Run from the extracted tree that fails twice: $APPDIR is unset, so it copies from "/usr/lnbits", and $HOME is read-only under ProtectHome=read-only, so it cannot create $PERSISTENT_DIR either. It then retries in a loop, calling zenity to report the error in a window nobody can see - 275 "Failed to open display" lines in one boot.
 #
-# So AppRun is bypassed and the real binary inside the extracted tree is run directly. bin/30-install.sh extracts it and checks that the entry point is executable; the blanket chmod that used to strip that bit is gone.
+# So AppRun is bypassed and the real binary inside the extracted tree is run directly. bin/30-install.ts extracts it and checks that the entry point is executable; the blanket chmod that used to strip that bit is gone.
 #
 # The working directory is the app directory, which is what AppRun cds to before running ./dist/lnbits. The data and extensions paths are given explicitly rather than derived from $PWD.
 WorkingDirectory=/opt/lnbits/squashfs-root/usr/lnbits

@@ -3,7 +3,7 @@
 //
 // Run:  bun bin/lint-vars.ts
 //
-// Port of bin/lint-vars.sh. Under `set -u` a variable that is used but never assigned is a runtime crash that only appears when the script reaches that line, which is how two of them got into these scripts.
+// Under `set -u` a variable that is used but never assigned is a runtime crash that only appears when the script reaches that line, which is how two of them got into these scripts.
 //
 // The check is deliberately rough: it reports names it cannot account for, so a few false positives are possible, but it catches the real class of bug. It skips heredoc bodies, single-quoted strings, escaped dollars and whole-line comments, because a $name in any of those is text rather than an expansion.
 

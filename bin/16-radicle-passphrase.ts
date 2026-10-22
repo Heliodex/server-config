@@ -3,7 +3,7 @@
 //
 // Run:  sudo bun bin/16-radicle-passphrase.ts
 //
-// Port of bin/16-radicle-passphrase.sh. The keystore at ~/.radicle/keys/radicle is an OpenSSH key encrypted with bcrypt, so radicle-node needs the passphrase to unlock it at startup. The passphrase goes in a root-owned 0400 file that only the unit reads, rather than in the unit file where `systemctl cat` would show it.
+// The keystore at ~/.radicle/keys/radicle is an OpenSSH key encrypted with bcrypt, so radicle-node needs the passphrase to unlock it at startup. The passphrase goes in a root-owned 0400 file that only the unit reads, rather than in the unit file where `systemctl cat` would show it.
 //
 // The file is always written, then the node is started once to confirm the passphrase actually works. An earlier version tried to detect whether the keystore was encrypted, guessed wrong, and exited without writing anything, so the unit looped on "keystore is encrypted".
 
