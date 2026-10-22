@@ -1,0 +1,51 @@
+[Unit]
+Description=Defector (SvelteKit on Bun)
+After=network-online.target
+Wants=network-online.target
+
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex/Defector
+
+# Defector starts and manages its own SurrealDB, on its own port, with its own auth. But it decides whether one is already running by reading a PID out of data/surreal/LOCK and testing whether that process is alive:
+#
+#   const pid = Number.parseInt(await Bun.file("data/surreal/LOCK").text());
+#   process.kill(pid, 0)   // alive?
+#
+# The file outlives the SurrealDB that wrote it, and after a reboot the PID in it belongs to some unrelated process. So the check succeeds, Defector skips starting its database, and then retries a connection to ws://localhost:8003 forever - 32 minutes of CPU in 23 minutes of wall clock, nothing logged, nothing listening.
+#
+# Removing a stale lock is safe: systemd kills the whole cgroup on stop, so if this file survived a restart, the process it names is not ours.
+ExecStartPre=-/bin/rm -f /home/heliodex/Defector/data/surreal/LOCK
+
+ExecStart=/home/heliodex/.bun/bin/bun ./build/index.js
+Environment=NODE_ENV=production
+EnvironmentFile=-/home/heliodex/Defector/.env
+
+Restart=always
+RestartSec=5
+# Stopping has to allow the child processes to finish. Defector manages a 70 GB surrealkv database, and 20 seconds was not enough: the log shows State 'final-sigterm' timed out. Killing.
+# followed by a SIGKILL of surreal. A hard kill leaves the database needing recovery on the next start, which makes every restart slower than the last.
+TimeoutStopSec=120
+Slice=apps.slice
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/heliodex/Defector
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

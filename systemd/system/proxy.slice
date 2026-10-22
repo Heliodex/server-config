@@ -1,0 +1,8 @@
+[Unit]
+Description=Reverse proxy
+
+[Slice]
+MemoryHigh=1G
+MemoryMax=1500M
+CPUWeight=300
+TasksMax=128

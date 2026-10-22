@@ -1,0 +1,42 @@
+[Unit]
+Description=Peaks (SvelteKit on Bun)
+After=network-online.target
+Wants=network-online.target
+
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex/Peaks
+ExecStart=/home/heliodex/.bun/bin/bun ./build/index.js
+Environment=NODE_ENV=production
+EnvironmentFile=-/home/heliodex/Peaks/.env
+
+# Peaks starts and manages its own SurrealDB, on its own port, with its own auth. Nothing to coordinate.
+
+Restart=always
+RestartSec=5
+# Stopping has to allow the child processes to finish. Peaks manages its SurrealDB subprocess, and 20 seconds was not enough: the log shows State 'final-sigterm' timed out. Killing.
+# followed by a SIGKILL of surreal. A hard kill leaves the database needing recovery on the next start, which makes every restart slower than the last.
+TimeoutStopSec=60
+Slice=apps.slice
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/heliodex/Peaks
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

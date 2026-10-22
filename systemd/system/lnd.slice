@@ -1,0 +1,12 @@
+[Unit]
+Description=Lightning services (LND, LNBits, Alby Hub)
+
+[Slice]
+MemoryHigh=3G
+MemoryMax=4G
+CPUWeight=200
+
+# 256 was tight for a Python app, a Go app and lnd together, and TasksMax counts threads.
+TasksMax=1024
+
+# No ManagedOOMMemoryPressure. With a low MemoryHigh it invites the kernel to kill the largest process whenever pressure rises, which turned a soft throttle into random restarts. MemoryMax is the bound.

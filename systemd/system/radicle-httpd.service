@@ -1,0 +1,39 @@
+[Unit]
+Description=Radicle HTTP Daemon
+Documentation=https://docs.radicle.xyz/
+After=network-online.target radicle-node.service
+Wants=network-online.target
+
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex
+ExecStart=/usr/bin/radicle-httpd --listen [::]:8775
+Environment=RAD_HOME=/home/heliodex/.radicle
+Environment=RUST_BACKTRACE=1
+Environment=RUST_LOG=info
+Restart=always
+RestartSec=3
+TimeoutStopSec=30
+Slice=radicle.slice
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/heliodex/.radicle
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

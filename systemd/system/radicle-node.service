@@ -1,0 +1,45 @@
+[Unit]
+Description=Radicle Node
+Documentation=https://docs.radicle.xyz/
+After=network-online.target
+Wants=network-online.target
+
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex
+ExecStart=/usr/bin/radicle-node --listen [::]:8776 --force
+Environment=RAD_HOME=/home/heliodex/.radicle
+Environment=RUST_BACKTRACE=1
+Environment=RUST_LOG=info
+
+# The keystore is passphrase-protected, so the node needs the passphrase to unlock it at startup. It is kept in a root-owned 0400 file rather than in this unit file, where "systemctl cat" would expose it.
+#
+# Run bin/16-radicle-passphrase.sh to create it.
+EnvironmentFile=-/etc/radicle/radicle.env
+
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=30
+Slice=radicle.slice
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/heliodex/.radicle
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

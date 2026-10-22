@@ -1,0 +1,41 @@
+[Unit]
+Description=Application services
+
+[Slice]
+# This slice holds everything user-facing: Defector with its 70 GB SurrealDB, Mercury Core with its own SurrealDB and Economy service, Peaks with a SurrealDB, Urbit, PaperMC's JVM, and the coputer trio.
+#
+# The first version of this file capped the whole thing at 3G/4G on a 30 GiB machine. That was wrong, and it broke three sites in a way that looked like a network fault:
+#
+#   mercs.dev                 timed out, 0 bytes
+#   rinmex-ritlys.heliodex.cf timed out, 0 bytes
+#   peaks.heliodex.cf         timed out, 0 bytes
+#
+# All three accepted the TCP connection and then never answered, because every one of them is in this slice. At MemoryHigh the kernel throttles allocations and processes sit in reclaim, so they can accept a connection and still never get around to serving it.
+# Services in other slices, like lnbits on 5000, were unaffected.
+#
+# NO MemoryHigh.
+#
+# MemoryHigh is a soft limit: when the slice reaches it the kernel throttles allocations and reclaims, rather than failing them. If the memory in use is anonymous - which SurrealDB's is - there is nothing to reclaim, so every process in the cgroup simply waits. That is a stall, not a failure: listening sockets still accept connections and then never produce a byte. It has now caused two outages here:
+#
+#   mercs.dev                 timed out, 0 bytes
+#   rinmex-ritlys.heliodex.cf timed out, 0 bytes
+#   peaks.heliodex.cf         timed out, 0 bytes
+#
+# and the kernel's accounting said so plainly:
+#
+#   memory.events  high 570464
+#   memory.pressure some avg10=60.21
+#
+# The box has 13 GiB of RAM and 2 GiB of swap, and this slice currently uses about 10.8 GB, because Defector's SurrealDB is loading a 70 GB database for its init query (7.0 GB of it is that one process). Any MemoryHigh below the real working set is guaranteed to stall it, and a value above it is not doing anything.
+#
+# So MemoryMax only: a hard bound, enforced by the kernel's OOM killer, with no soft throttle to sit on. 12G leaves the ~3.5G that bitcoind, lnd, caddy, radicle and the kernel need.
+#
+# Once Defector's init query has finished its footprint should drop considerably. Measure again then - do not guess - and if a MemoryHigh is wanted at that point, set it well above the measured peak:
+#
+#   systemctl show apps.slice -p MemoryCurrent
+#   and the accounting in /sys/fs/cgroup/apps.slice/memory.current
+MemoryMax=12G
+CPUWeight=200
+TasksMax=4096
+
+# ManagedOOMMemoryPressure=kill was set here. With MemoryHigh at 3G on a 30 GiB machine the pressure limit was permanently exceeded, so the kernel was invited to kill the largest process in the slice at random. Removed: MemoryMax bounds the slice, and the kernel's own OOM killer handles a genuine overrun.

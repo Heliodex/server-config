@@ -1,0 +1,47 @@
+[Unit]
+Description=Mercury Core (SvelteKit on Bun)
+After=network-online.target
+Wants=network-online.target
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=mercury
+Group=mercury
+WorkingDirectory=/home/mercury/MercuryCore/Site
+ExecStart=/home/heliodex/.bun/bin/bun ./build/index.js
+Environment=NODE_ENV=production
+Environment=HOST=0.0.0.0
+EnvironmentFile=-/home/mercury/MercuryCore/Site/.env
+
+# The app is the Site/ subdirectory. The repository root holds the polyglot source - mercury.core.ts, the Economy service, compose.yml - and is not what gets executed. pm2 recorded:
+#   pm_cwd      /home/mercury/MercuryCore/Site
+#   pm_exec_path <bun>
+#   args        ["./build"]
+#
+# The app spawns the Economy service itself, as a subprocess, the same way it manages SurrealDB. So it needs to be able to execute binaries and scripts from the repository root as well as from Site/.
+
+Restart=always
+RestartSec=5
+# Stopping has to allow the child processes to finish. Mercury Core manages its SurrealDB and Economy subprocesses, and 20 seconds was not enough: the log shows State 'final-sigterm' timed out. Killing.
+# followed by a SIGKILL of surreal. A hard kill leaves the database needing recovery on the next start, which makes every restart slower than the last.
+TimeoutStopSec=120
+Slice=apps.slice
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/mercury/MercuryCore
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

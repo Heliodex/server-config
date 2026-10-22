@@ -1,0 +1,47 @@
+[Unit]
+Description=Alby Hub
+Documentation=https://github.com/AlbyHub/albyhub
+After=network-online.target lnd.service
+Wants=network-online.target lnd.service
+
+# Wants=, not Requires=, for the same reason as lnbits: a start job whose dependency failed is cancelled permanently for that boot, and Restart= does not apply to a unit that never started. A slow lnd then leaves this down until it is started by hand.
+
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex/albyhub
+ExecStart=/home/heliodex/albyhub/bin/albyhub
+Environment=PORT=8029
+Environment=LN_BACKEND_TYPE=LND
+Environment=LND_ADDRESS=localhost:10009
+Environment=LND_CERT_FILE=/home/heliodex/.lnd/tls.cert
+Environment=LND_MACAROON_FILE=/home/heliodex/.lnd/data/chain/bitcoin/mainnet/admin.macaroon
+Environment=WORK_DIR=/home/heliodex/albyhub/data
+Environment=LOG_EVENTS=true
+Environment=LDK_GOSSIP_SOURCE=
+
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+Slice=lnd.slice
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/heliodex/albyhub
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

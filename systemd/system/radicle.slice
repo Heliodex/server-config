@@ -1,0 +1,8 @@
+[Unit]
+Description=Radicle
+
+[Slice]
+MemoryHigh=2G
+MemoryMax=3G
+CPUWeight=100
+TasksMax=256

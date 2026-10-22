@@ -1,0 +1,51 @@
+[Unit]
+Description=Caddy
+Documentation=https://caddyserver.com/docs/
+After=network.target network-online.target
+Wants=network-online.target
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=notify
+User=caddy
+Group=caddy
+WorkingDirectory=/var/www
+
+# NOT --environ. That flag prints every environment variable to the log at startup, which put NETLIFY_API_TOKEN into the journal in plaintext. It is a debugging flag and is not needed: the Caddyfile reads {$NETLIFY_API_TOKEN} from the process environment either way.
+ExecStart=/usr/local/bin/caddy run --config /var/www/Caddyfile
+ExecReload=/usr/local/bin/caddy reload --config /var/www/Caddyfile --force
+TimeoutStopSec=5s
+LimitNOFILE=1048576
+Slice=proxy.slice
+
+# The Netlify DNS challenge token. Not in the Caddyfile, not in git.
+#
+# No leading dash: if the file is missing or unreadable, that is a hard error and the unit fails, rather than caddy starting with an empty environment and failing later with a confusing "missing API token". The file is labelled etc_t, because init_t - which is what reads EnvironmentFile= - may not read httpd_sys_content_t.
+EnvironmentFile=/etc/caddy/netlify.env
+
+# Binding to 80/443 needs CAP_NET_BIND_SERVICE. Nothing else.
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+# Caddy runs in the httpd_t SELinux domain, which may not read files under a user's home. The web root and its configuration therefore live under /var/www, where they get the right label automatically.
+#
+# The static trees are symlinks from /var/www to their original homes in $HOME, so the data has one copy and the served paths are stable.
+ReadOnlyPaths=/var/www
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/caddy /var/log/caddy
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

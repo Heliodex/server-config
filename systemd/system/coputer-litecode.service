@@ -1,0 +1,38 @@
+[Unit]
+Description=Coputer litecode execution engine
+Documentation=https://github.com/Heliodex/coputer
+After=network-online.target
+Wants=network-online.target
+
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex/coputer/litecode
+ExecStart=/usr/bin/litecode
+Restart=always
+RestartSec=10
+TimeoutStopSec=20
+Slice=apps.slice
+
+# Bundled programs are stored here.
+ReadWritePaths=/home/heliodex/coputer/litecode
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

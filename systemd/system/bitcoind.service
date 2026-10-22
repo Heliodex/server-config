@@ -1,0 +1,47 @@
+[Unit]
+Description=Bitcoin Core full node
+Documentation=https://bitcoincore.org/en/doc/
+After=network-online.target
+Wants=network-online.target
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex/bitcoin
+
+# -daemon=0 overrides daemon=1 in /srv/hdd/.bitcoin/bitcoin.conf.
+# Without it bitcoind forks into the background, the main process exits immediately, and systemd reports "Deactivated successfully" while an unsupervised bitcoind keeps running.
+#
+# -conf points at the config bitcoind actually reads, on btrfs with real permissions. The datadir is a fuseblk mount where every file is 0777, so the RPC password cannot live there. See bin/14-lnd-creds.sh.
+ExecStart=/home/heliodex/bitcoin/bitcoin-30.0/bin/bitcoind -daemon=0 -datadir=/srv/hdd/.bitcoin -conf=/etc/bitcoin/bitcoin.conf
+
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=180
+KillSignal=SIGINT
+Slice=bitcoin.slice
+
+# The block files live on the NTFS volume; keep the scheduler out of its way.
+Nice=5
+IOSchedulingClass=idle
+IOSchedulingPriority=7
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/srv/hdd/.bitcoin
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

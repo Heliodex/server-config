@@ -1,0 +1,78 @@
+[Unit]
+Description=LNbits
+Documentation=https://docs.lnbits.org/
+After=network-online.target lnd.service
+Wants=network-online.target lnd.service
+
+# Wants=, not Requires=.
+#
+# With Requires=, if lnd's start job had not succeeded by the time this unit's job ran, systemd cancelled this one too:
+#
+#   Dependency failed for LNbits.
+#   lnbits.service: Job lnbits.service/start failed with result
+#   'dependency'.
+#
+# That is permanent for the rest of the boot: systemd does not retry a job whose dependency failed, and Restart= does not apply to a unit that never started. So a slow lnd meant lnbits stayed down until someone started it by hand, which is exactly what happened after the reboot.
+#
+# Wants= keeps the ordering but not the cancellation. If lnd is not up yet, this starts anyway and its own Restart=on-failure keeps trying until the backend answers.
+
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+# lnbits-1.1.0 is an AppImage, and the AppRun inside it is an extractor rather than a launcher. It does:
+#
+#   PERSISTENT_DIR="$HOME/.local/share/lnbits"
+#   rm -rf "$PERSISTENT_DIR"
+#   cp -r "$APPDIR/usr/lnbits"/* "$PERSISTENT_DIR/"
+#   cd "$PERSISTENT_DIR"
+#   exec ./dist/lnbits
+#
+# Run from the extracted tree that fails twice: $APPDIR is unset, so it copies from "/usr/lnbits", and $HOME is read-only under ProtectHome=read-only, so it cannot create $PERSISTENT_DIR either. It then retries in a loop, calling zenity to report the error in a window nobody can see - 275 "Failed to open display" lines in one boot.
+#
+# So AppRun is bypassed and the real binary inside the extracted tree is run directly. bin/30-install.sh extracts it and checks that the entry point is executable; the blanket chmod that used to strip that bit is gone.
+#
+# The working directory is the app directory, which is what AppRun cds to before running ./dist/lnbits. The data and extensions paths are given explicitly rather than derived from $PWD.
+WorkingDirectory=/opt/lnbits/squashfs-root/usr/lnbits
+ExecStart=/opt/lnbits/squashfs-root/usr/lnbits/dist/lnbits
+
+# Where the existing database and extensions live. The old layout had a relative symlink, /home/heliodex/lightning/data -> lnbits/database, because the app looked for ./data relative to its working directory.
+# With these set explicitly the working directory no longer matters.
+Environment=LNBITS_DATA_FOLDER=/home/heliodex/lightning/lnbits/database
+Environment=LNBITS_EXTENSIONS_PATH=/home/heliodex/lightning/lnbits/extensions
+
+Environment=LNBITS_BACKEND_WALLET_CLASS=LndWallet
+Environment=LND_GRPC_ENDPOINT=127.0.0.1
+Environment=LND_GRPC_PORT=10009
+Environment=LND_GRPC_CERT=/home/heliodex/.lnd/tls.cert
+Environment=LND_GRPC_MACAROON=/home/heliodex/.lnd/data/chain/bitcoin/mainnet/admin.macaroon
+Environment=LNBITS_ADMIN_UI=true
+Environment=HOST=0.0.0.0
+Environment=PORT=5000
+
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+Slice=lnd.slice
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/heliodex/lightning /opt/lnbits
+RuntimeDirectory=lnbits
+RuntimeDirectoryMode=0755
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

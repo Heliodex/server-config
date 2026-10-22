@@ -1,0 +1,9 @@
+[Unit]
+Description=Bitcoin Core
+
+[Slice]
+MemoryHigh=3G
+MemoryMax=5G
+CPUWeight=50
+IOWeight=50
+TasksMax=512

@@ -1,0 +1,55 @@
+[Unit]
+Description=Urbit ship
+Documentation=https://urbit.org
+After=network-online.target
+Wants=network-online.target
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex/urbit
+
+# The pier is a relative name, resolved against the working directory, so this runs the ship at ~/urbit/rinmex-ritlys.
+#
+# -t disables the runtime's terminal assumptions. Without it, vere tries to initialise a terminal and fails with "unable to initialize terminal (not a tty)" under a service manager.
+#
+# The pier also contains a .run file, which is a copy of the binary that booted it, and is the version-matched way to start the ship. If the version check below complains, use that instead:
+#
+#   ExecStart=/home/heliodex/urbit/rinmex-ritlys/.run
+#
+# Urbit's HTTP interface defaults to 8080, and the Caddyfile reverse-proxies rinmex-ritlys.heliodex.cf to it:
+#
+#   rinmex-ritlys.heliodex.cf {
+#       reverse_proxy :8080
+#   }
+#
+# So 8080 belongs to urbit. Pinning it explicitly means the ship cannot drift onto a port another service wants, and the Caddyfile keeps working. lnd's REST proxy used to want 8080 as well; it has been moved to 18080.
+ExecStart=/home/heliodex/urbit/urbit -t --http-port=8080 rinmex-ritlys
+
+Restart=always
+RestartSec=30
+TimeoutStopSec=120
+KillSignal=SIGINT
+Slice=apps.slice
+
+# The ship writes to its pier, and keeps state in $HOME.
+ReadWritePaths=/home/heliodex/urbit
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

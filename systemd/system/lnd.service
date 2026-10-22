@@ -1,0 +1,62 @@
+[Unit]
+Description=Lightning Network Daemon
+Documentation=https://docs.lightning.engineering/lightning-node
+After=network-online.target bitcoind.service
+Requires=bitcoind.service
+Wants=network-online.target
+BindsTo=bitcoind.service
+
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=notify
+NotifyAccess=all
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex/lightning
+ExecStart=/home/heliodex/lightning/lnd \
+  --lnddir=/home/heliodex/.lnd \
+  --bitcoin.node=bitcoind \
+  --bitcoind.dir=/srv/hdd/.bitcoin \
+  --bitcoind.zmqpubrawblock=localhost:28332 \
+  --bitcoind.zmqpubrawtx=localhost:28333 \
+  --bitcoin.mainnet \
+  --alias=Heliodex \
+  --color=#ff8000 \
+  --rpclisten=127.0.0.1:10009 \
+  --restlisten=127.0.0.1:18080 \
+  --tlscertpath=/home/heliodex/.lnd/tls.cert \
+  --tlskeypath=/home/heliodex/.lnd/tls.key \
+  --wallet-unlock-password-file=/home/heliodex/.lnd/wallet-password
+
+# lnd reads the bitcoind RPC credentials from lnd.conf, not the command line, so they never appear in the process list.
+#
+# The wallet password is a systemd credential. lnd reads it from the path given above, which is a copy of the credential placed in the lnd dir.
+
+Restart=on-failure
+RestartSec=10
+
+# lnd does not send READY=1 until it has the chain backend and has unlocked the wallet, and on this box that is slow: the chain lives on a 5 TB NTFS volume and bitcoind is still verifying after a cold boot.
+#
+# On the first real boot lnd was started at 23:29:35 and was still "activating" at 23:34:18 - 283 seconds, with 17 left before systemd would have killed it. A 300 second limit is too tight for a service whose start depends on another service's disk work.
+TimeoutStartSec=900
+TimeoutStopSec=60
+Slice=lnd.slice
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/heliodex/.lnd
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

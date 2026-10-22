@@ -1,0 +1,48 @@
+[Unit]
+Description=PaperMC %i
+After=network-online.target
+Wants=network-online.target
+
+
+# Do not spin if the service cannot start.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=heliodex
+Group=heliodex
+WorkingDirectory=/home/heliodex/minecraft/%i
+ExecStart=/usr/local/libexec/paper-start.sh /home/heliodex/minecraft/%i
+
+# Paper must be told to stop cleanly or the world is left half-saved.
+# RCON has to be enabled in server.properties (enable-rcon=true).
+#
+# The credential is ENCRYPTED, so it needs LoadCredentialEncrypted= - not LoadCredential=, which would hand the raw base64 ciphertext to the service.
+#
+# The name after "=" must match the name embedded in the credential, and the credential file is named without a .cred suffix so that the filename, the embedded name and the ID here are all the same string.
+#
+# NOTE: systemd mounts a tmpfs for the credentials directory, and that needs kernel >= 5.12. If the credentials filesystem is unavailable, this unit will fail with 243/CREDENTIALS. mc-stop.sh falls back to a plain file, and 10-secrets.sh writes one, so the graceful stop still works either way.
+LoadCredentialEncrypted=rcon-password:/etc/credstore.encrypted/rcon-password
+ExecStop=/usr/local/libexec/mc-stop.sh
+
+Restart=on-failure
+RestartSec=30
+TimeoutStopSec=180
+KillSignal=SIGTERM
+Slice=apps.slice
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/heliodex/minecraft
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
