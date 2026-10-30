@@ -148,6 +148,17 @@ for await (const name of new Bun.Glob("*").scan({ cwd: "/var/www", onlyFiles: fa
 	const p = `/var/www/${name}`
 	const target = (await $`readlink -f ${p}`.nothrow().quiet()).stdout.toString().trim()
 	if (!target || !isDir(target)) continue
+
+	// Defector's page lives in an app checkout that also contains .env and the SurrealDB data directory. Label only the directory and the files Caddy serves, never the whole tree.
+	if (name === "defector") {
+		await labelFile(target, "httpd_sys_content_t", target)
+		for (const file of ["leaderboard.html", "Defector.png"]) {
+			const path = `${target}/${file}`
+			if (exists(path)) await labelFile(path, "httpd_sys_content_t", path)
+		}
+		continue
+	}
+
 	await labelFile(target, "httpd_sys_content_t", `${target}(/.*)?`)
 }
 

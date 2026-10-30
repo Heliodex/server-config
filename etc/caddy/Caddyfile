@@ -93,9 +93,13 @@ powertools.hackclub.com {
 }
 
 # 2026/08/28 hope this one gets submissions
-
+#
+# 2026/10/30 event finished. The app and its 70 GB SurrealDB are no longer proxied; Caddy serves the self-contained static leaderboard instead.
 defector.hackclub.com {
-	reverse_proxy :3000
+	root * /var/www/defector
+	encode zstd gzip
+	rewrite * /leaderboard.html
+	file_server
 }
 
 # 2026/09/11 this is PEAK

@@ -23,6 +23,7 @@ const watched = [
 	"/home/mercury/setup",
 	"/home/mercury/MercuryCore/Site",
 	"/home/heliodex/minecraft",
+	"/home/heliodex/Defector",
 	"/srv/ssd/_fileserver",
 ]
 
@@ -71,6 +72,8 @@ await linkTree("/home/heliodex/radicle-explorer/build", `${WEBROOT}/radicle-expl
 await linkTree("/home/mercury/setup", `${WEBROOT}/mercury-setup`)
 await linkTree("/home/mercury/MercuryCore/Site", `${WEBROOT}/mercury-site`)
 await linkTree("/home/heliodex/minecraft", `${WEBROOT}/minecraft`)
+// Defector is special-cased in 40-selinux.ts: only its served files are labelled, not the whole app checkout (which contains .env and its database).
+await linkTree("/home/heliodex/Defector", `${WEBROOT}/defector`)
 await linkTree("/srv/ssd/_fileserver", `${WEBROOT}/fileserver`)
 
 console.log("\n== rewriting the Caddyfile's paths ==")
