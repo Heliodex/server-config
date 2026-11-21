@@ -30,7 +30,7 @@ RUN bun add -g --trust @openchamber/web \
  && rm -f /usr/local/bin/openchamber \
  && printf '%s\n' \
       '#!/usr/bin/env bash' \
-      'exec /usr/local/bin/bun /opt/bun/install/global/node_modules/@openchamber/web/bin/cli.js "$@"' \
+      'exec /usr/local/bin/bun /opt/bun/install/global/node_modules/@openchamber/web/build/bin/cli.js "$@"' \
       > /usr/local/bin/openchamber \
  && chmod 755 /usr/local/bin/openchamber \
  && chmod -R a+rX /opt/bun
@@ -44,8 +44,9 @@ RUN mkdir -p /home/bun/.local/share/opencode /home/bun/.config/opencode /home/bu
  && chmod 700 /tmp/opencode
 
 USER bun
-# Verify as the runtime user, so this class of problem fails the build.
-RUN opencode --version
+# Verify as the runtime user, so this class of problem fails the build. OpenChamber's bin path has moved between releases before, and the wrapper above hardcodes it.
+RUN opencode --version \
+ && openchamber --version
 
 WORKDIR /workspace
 EXPOSE 4096 3000
