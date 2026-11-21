@@ -6,7 +6,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Luau tooling: luau, luau-analyze, luau-ast and luau-compile.
-ARG LUAU_VERSION=0.742
+ARG LUAU_VERSION=0.747
 RUN curl -fsSL -o /tmp/luau.zip "https://github.com/luau-lang/luau/releases/download/${LUAU_VERSION}/luau-ubuntu.zip" \
  && unzip -q /tmp/luau.zip -d /usr/local/bin \
  && chmod +x /usr/local/bin/luau* \
