@@ -107,7 +107,7 @@ defector.hackclub.com {
 # 2026/09/11 this is PEAK
 
 peaks.heliodex.cf {
-	reverse_proxy :6511
+	respond "site moved, clear your DNS cache"
 }
 
 import /var/www/fileserver/Caddyfile
