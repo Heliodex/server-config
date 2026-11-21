@@ -13,6 +13,10 @@
 *.d/*.conf 644
 etc/caddy/Caddyfile 644
 
+# Podman quadlets, linked into ~/.config/containers/systemd by bin/34-sandbox.ts
+*.container 644
+containers/opencode/*.sh 755
+
 # Helper scripts: executable
 libexec/*.sh 755
 libexec/*.ts 755

@@ -1,0 +1,55 @@
+FROM docker.io/oven/bun:1-debian
+
+# Debian (glibc) rather than Alpine, because OpenCode ships prebuilt platform binaries and the glibc ones are the safe choice.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git ca-certificates curl unzip ripgrep golang \
+ && rm -rf /var/lib/apt/lists/*
+
+# Luau tooling: luau, luau-analyze, luau-ast and luau-compile.
+ARG LUAU_VERSION=0.742
+RUN curl -fsSL -o /tmp/luau.zip "https://github.com/luau-lang/luau/releases/download/${LUAU_VERSION}/luau-ubuntu.zip" \
+ && unzip -q /tmp/luau.zip -d /usr/local/bin \
+ && chmod +x /usr/local/bin/luau* \
+ && rm /tmp/luau.zip
+
+# Python tooling: uv, with a uv-managed Python toolchain instead of the distro packages.
+ENV UV_PYTHON_INSTALL_DIR=/opt/python
+ENV UV_PYTHON_BIN_DIR=/usr/local/bin
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin UV_NO_MODIFY_PATH=1 sh \
+ && uv python install --default \
+ && chown -R bun:bun /opt/python
+
+# Install Bun's global packages somewhere the non-root user can read.
+ENV BUN_INSTALL=/opt/bun
+ENV PATH="/opt/bun/bin:${PATH}"
+RUN bun i -g --trust @opencode/cli \
+ && chmod -R a+rX /opt/bun
+
+# OpenChamber: the web/PWA front end for OpenCode. It ships as a Node CLI, but this image has no Node.js - it runs fine under the Bun already here (server, node-pty and sherpa-onnx-node all load), so we launch it through Bun. The bin bun publishes carries a `node` shebang, so replace it with a Bun wrapper.
+RUN bun add -g --trust @openchamber/web \
+ && rm -f /usr/local/bin/openchamber \
+ && printf '%s\n' \
+      '#!/usr/bin/env bash' \
+      'exec /usr/local/bin/bun /opt/bun/install/global/node_modules/@openchamber/web/bin/cli.js "$@"' \
+      > /usr/local/bin/openchamber \
+ && chmod 755 /usr/local/bin/openchamber \
+ && chmod -R a+rX /opt/bun
+
+# Runs the OpenCode server and OpenChamber together (see container-start.sh).
+COPY container-start.sh /usr/local/bin/container-start.sh
+RUN chmod 755 /usr/local/bin/container-start.sh
+
+RUN mkdir -p /home/bun/.local/share/opencode /home/bun/.config/opencode /home/bun/.config/openchamber /workspace /tmp/opencode \
+ && chown -R bun:bun /home/bun /workspace /tmp/opencode \
+ && chmod 700 /tmp/opencode
+
+USER bun
+# Verify as the runtime user, so this class of problem fails the build.
+RUN opencode --version
+
+WORKDIR /workspace
+EXPOSE 4096 3000
+
+# Drop the image's entrypoint shim, which turns "command not found" into the confusing `bun <command>` error.
+ENTRYPOINT []
+CMD ["/usr/local/bin/container-start.sh"]

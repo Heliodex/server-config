@@ -1,0 +1,28 @@
+[Unit]
+Description=OpenCode + OpenChamber sandbox
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=localhost/opencode-bun
+ContainerName=opencode
+UserNS=keep-id:uid=1000,gid=1000
+DropCapability=ALL
+PodmanArgs=--security-opt no-new-privileges
+EnvironmentFile=%h/agents/opencode.env
+PublishPort=127.0.0.1:4096:4096
+# Host 3001 -> OpenChamber 3000 (host 3000 is used by another local project).
+PublishPort=127.0.0.1:3001:3000
+SecurityLabelDisable=true
+Volume=%h/agents/projects:/workspace
+Volume=%h/agents/state/data:/home/bun/.local/share/opencode:Z
+Volume=%h/agents/state/config:/home/bun/.config/opencode:Z
+Volume=%h/agents/state/openchamber:/home/bun/.config/openchamber:Z
+Volume=/tmp/opencode:/tmp/opencode:Z
+
+[Service]
+ExecStartPre=mkdir -p /tmp/opencode
+Restart=always
+
+[Install]
+WantedBy=default.target
