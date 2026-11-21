@@ -12,6 +12,7 @@ server's `/etc/systemd/system` is a copy of it.
 systemd/system/     → /etc/systemd/system   (unit files and slices)
 systemd/user/       → ~/.config/systemd/user (user units)
 libexec/            → /usr/local/libexec    (helper scripts)
+containers/         → ~/.config/containers/systemd (podman quadlets, a user unit)
 etc/                → /etc/                 (Caddyfile and friends)
 bin/                → scripts, run on the server
 state/captured/     → the units as they were before the migration (reference)
@@ -166,6 +167,9 @@ bun bin/50-retire.ts
 
 # 6. bring it up
 bun bin/60-enable-all.ts
+
+# 7. the agent sandbox. This is a user unit, so run it as heliodex, not root
+bun bin/34-sandbox.ts
 ```
 
 `30-install.ts` installs and reloads but does **not** start or enable
@@ -199,7 +203,7 @@ installed units and labels the trees behind the `/var/www` symlinks.
 | Coputer litecode | `coputer-litecode.service` | heliodex | 2505 |
 | Urbit | `urbit.service` | heliodex | pier at `~/urbit/rinmex-ritlys` |
 | PaperMC | `paper@.service` | heliodex | jar `paper-26.1.2-61.jar`, graceful stop via RCON |
-| Agent sandbox | `opencode.container` (podman quadlet) | heliodex | user unit, unchanged |
+| Agent sandbox | `opencode.service` (podman quadlet, from `containers/opencode/`) | heliodex | user unit, started by `bin/34-sandbox.ts` |
 
 SurrealDB is deliberately not managed here. Each app starts and manages its
 own instance, on its own port, with its own auth. Consolidating to one
@@ -257,6 +261,8 @@ that another one also wants. The ones that clashed:
 | radicle-httpd | 8775 | |
 | radicle-node | 8776 | |
 | bitcoin | 8332 (RPC, local) | P2P not opened inbound |
+| opencode | 4096 | OpenCode server, loopback only |
+| openchamber | 3001 | the sandbox UI, loopback only; it listens on 3000 inside the container |
 
 `httpd_t` may only bind ports labelled `http_port_t`, so a port caddy
 needs has to be labelled:
@@ -340,6 +346,13 @@ credential and writes that file (`heliodex:heliodex`, 0400).
 The Netlify API token was inline in the Caddyfile. It now lives in
 `/etc/caddy/netlify.token` (root:caddy, 0640) and is passed to Caddy as
 `{$NETLIFY_API_TOKEN}` via `EnvironmentFile`.
+
+The agent sandbox is the exception. Its two passwords live in
+`~/agents/opencode.env` as plaintext, because podman reads them with
+`EnvironmentFile=`. The file is 0600, outside the repo and gitignored, and
+`bin/34-sandbox.ts` refuses to start without it. Moving them into the
+credential store would mean feeding podman secrets from `systemd-creds`,
+which is not done.
 
 The PaperMC RCON password is a credential, consumed by
 `libexec/mc-stop.sh` so the server can be stopped cleanly rather than
