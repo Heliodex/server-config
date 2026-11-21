@@ -35,9 +35,9 @@ RUN bun add -g --trust @openchamber/web \
  && chmod 755 /usr/local/bin/openchamber \
  && chmod -R a+rX /opt/bun
 
-# Runs the OpenCode server and OpenChamber together (see container-start.sh).
-COPY container-start.sh /usr/local/bin/container-start.sh
-RUN chmod 755 /usr/local/bin/container-start.sh
+# Runs the OpenCode server and OpenChamber together (see container-start.ts).
+COPY container-start.ts /usr/local/bin/container-start.ts
+RUN chmod 755 /usr/local/bin/container-start.ts
 
 RUN mkdir -p /home/bun/.local/share/opencode /home/bun/.config/opencode /home/bun/.config/openchamber /workspace /tmp/opencode \
  && chown -R bun:bun /home/bun /workspace /tmp/opencode \
@@ -52,4 +52,4 @@ EXPOSE 4096 3000
 
 # Drop the image's entrypoint shim, which turns "command not found" into the confusing `bun <command>` error.
 ENTRYPOINT []
-CMD ["/usr/local/bin/container-start.sh"]
+CMD ["bun", "/usr/local/bin/container-start.ts"]
