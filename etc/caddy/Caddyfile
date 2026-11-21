@@ -1,6 +1,8 @@
 # Heliodex 2025/05/09 -- after updating to OpenSUSE (it's cool), this was the ONLY file I forgot to back up (the 2nd time it was lost, after the ubuntu upgrade I think lolll)
 {
 	email heli@odex.cf
+	# Keep Caddy off the tailnet IP: tailscale serve binds <tailnet-ip>:443 for the sandbox UI. Enumerating the host's own addresses preserves LAN and IPv6 access.
+	default_bind 192.168.1.15 [2a02:8012:477e:1::e]
 }
 
 # todo 2025/07/07: update when Let's Encrypt offers IP certs on prod
