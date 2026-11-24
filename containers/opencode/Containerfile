@@ -27,6 +27,11 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/b
  && uv python install --default \
  && chown -R bun:bun /opt/python
 
+# Lean tooling: elan (the Lean toolchain manager), which provides lean, lake and the toolchains they run. The toolchain lives in /opt/elan rather than the default ~/.elan, because the sandbox's home is a bind mount for state, not for toolchains. Installed as the runtime user below, so it can fetch other toolchains later.
+ENV ELAN_HOME=/opt/elan
+ENV PATH="/opt/elan/bin:${PATH}"
+RUN mkdir -p /opt/elan && chown bun:bun /opt/elan
+
 # Install Bun's global packages somewhere the non-root user can read.
 ENV BUN_INSTALL=/opt/bun
 ENV PATH="/opt/bun/bin:${PATH}"
@@ -52,6 +57,12 @@ RUN mkdir -p /home/bun/.local/share/opencode /home/bun/.config/opencode /home/bu
  && chmod 700 /tmp/opencode
 
 USER bun
+
+# elan with the stable Lean toolchain, so lean and lake work without a first-run download. Projects with their own lean-toolchain file fetch their version on first use.
+RUN curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --no-modify-path --default-toolchain stable \
+ && lean --version \
+ && lake --version
+
 # Verify as the runtime user, so this class of problem fails the build. OpenChamber's bin path has moved between releases before, and the wrapper above hardcodes it.
 RUN opencode --version \
  && openchamber --version
