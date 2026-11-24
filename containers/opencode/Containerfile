@@ -5,6 +5,14 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates curl unzip ripgrep golang \
  && rm -rf /var/lib/apt/lists/*
 
+# GitHub CLI, from GitHub's own apt repository (Debian's archive lags behind it).
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
+ && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+ && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends gh \
+ && rm -rf /var/lib/apt/lists/*
+
 # Luau tooling: luau, luau-analyze, luau-ast and luau-compile.
 ARG LUAU_VERSION=0.747
 RUN curl -fsSL -o /tmp/luau.zip "https://github.com/luau-lang/luau/releases/download/${LUAU_VERSION}/luau-ubuntu.zip" \
