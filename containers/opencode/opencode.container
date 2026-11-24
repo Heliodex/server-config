@@ -9,6 +9,8 @@ ContainerName=opencode
 UserNS=keep-id:uid=1000,gid=1000
 DropCapability=ALL
 PodmanArgs=--security-opt no-new-privileges
+# Cap the sandbox at 8 GB of RAM. --memory-swap equal to --memory leaves no swap headroom, so the total (RAM + swap) is also 8 GB.
+PodmanArgs=--memory=8g --memory-swap=8g
 EnvironmentFile=%h/agents/opencode.env
 PublishPort=127.0.0.1:4096:4096
 # Host 3001 -> OpenChamber 3000 (host 3000 is used by another local project).
